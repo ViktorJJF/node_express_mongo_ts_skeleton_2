@@ -11,7 +11,7 @@ const escapeHtml = (text: string) => {
   }
   // Convert non-string types to string
   const str = String(text);
-  return str.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 };
 
 const errorHandler = (
