@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import requestIp from 'request-ip';
 import { validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
-import logger from '../config/logger';
 
 const convertToDate = (date: string | number | Date): Date => {
   const preFormated = new Date(date);
@@ -33,8 +32,8 @@ const getCountry = (req: Request): string =>
   req.headers['cf-ipcountry'] ? (req.headers['cf-ipcountry'] as string) : 'XX';
 
 const handleError = (res: Response, err: any): void => {
-  logger.error('🐞 LOG HERE err:', err);
-  logger.error('🐞 Error stack:', err.stack);
+  console.error('🐞 LOG HERE err:', err);
+  console.error('🐞 Error stack:', err.stack);
 
   // Handle different types of error codes
   let statusCode = 500;

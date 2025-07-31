@@ -6,21 +6,10 @@ interface NotificationProvider {
 }
 
 // Helper function to escape markdown characters for Telegram MarkdownV2
-const escapeMarkdown = (text: string): string => {
+const _escapeMarkdown = (text: string): string => {
   // Characters that need to be escaped in MarkdownV2: _ * [ ] ( ) ~ ` > # + = | { } . ! -
   const specialChars = /[_*[\]()~`>#+=|{}.!-]/g;
   return text.replace(specialChars, '\\$&');
-};
-
-// Helper function to convert HTML-like formatting to markdown
-const convertToMarkdown = (htmlText: string): string => {
-  return htmlText
-    .replace(/<b>(.*?)<\/b>/g, '*$1*')
-    .replace(/<pre>([\s\S]*?)<\/pre>/g, '```\n$1\n```')
-    .replace(/<br\s*\/?>/g, '\n')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&');
 };
 
 class NotificationManager {
@@ -40,9 +29,7 @@ class NotificationManager {
     if (selectedProvider) {
       // For Telegram, we need to escape markdown characters properly
       let processedMessage = message;
-      if (provider === 'telegram') {
-        processedMessage = escapeMarkdown(message);
-      }
+      processedMessage = message;
       await selectedProvider.sendMessage(recipient, processedMessage);
     } else {
       logger.error(`Notification provider '${provider}' not found.`);

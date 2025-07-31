@@ -20,7 +20,7 @@ export const sendMessage = async (chatId: string, message: string) => {
   }
 
   try {
-    await bot.sendMessage(chatId, message, { parse_mode: 'MarkdownV2' });
+    await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
     logger.info(`Message sent to ${chatId}`);
   } catch (error) {
     logger.error('Error sending message via Telegram:', error);

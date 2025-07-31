@@ -26,7 +26,7 @@ export interface ManualErrorReport {
  */
 export const reportError = async (report: ManualErrorReport): Promise<void> => {
   try {
-    console.log('🐞 LOG HERE report:', report);
+    console.error('🐞 LOG HERE report:', report);
     const errorReportingService = ErrorReportingService.getInstance();
 
     const errorDetails: ErrorDetails = {

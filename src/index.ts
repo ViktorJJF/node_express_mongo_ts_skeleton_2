@@ -1,5 +1,9 @@
 import 'dotenv/config';
-import express, { Request, Response, NextFunction } from 'express';
+import express, {
+  Request as _Request,
+  Response as _Response,
+  NextFunction as _NextFunction,
+} from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import compression from 'compression';
@@ -11,7 +15,7 @@ import i18n from 'i18n';
 import initMongo from './config/mongo';
 import path from 'path';
 import swaggerUi from 'swagger-ui-express';
-import logger from './config/logger';
+// import logger from './config/logger';
 import HealthCheckMiddleware from './middleware/healthCheck';
 import mongoose from 'mongoose';
 import errorHandler from './middleware/errorHandler';
@@ -45,16 +49,9 @@ app.get('/', (req, res) => {
 });
 
 // Enable only in development HTTP request logger middleware
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
-
-// for parsing json
-app.use(
-  bodyParser.json({
-    limit: '100mb',
-  }),
-);
 
 app.use(express.json());
 // for parsing application/x-www-form-urlencoded
@@ -103,7 +100,7 @@ app.get('/health', async (req, res) => {
         dbStatus = 'healthy';
       } catch (dbError) {
         dbStatus = 'error';
-        logger.error('Database ping failed:', dbError);
+        console.error('Database ping failed:', dbError);
       }
     } else {
       dbStatus = 'disconnected';
@@ -138,7 +135,7 @@ app.get('/health', async (req, res) => {
     const statusCode = response.status === 'healthy' ? 200 : 503;
     res.status(statusCode).json(response);
   } catch (error) {
-    logger.error('Health check failed:', error);
+    console.error('Health check failed:', error);
     res.status(503).json({
       status: 'error',
       timestamp: new Date().toISOString(),
@@ -152,19 +149,21 @@ app.use('/api', routes);
 app.use(errorHandler);
 
 app.listen(app.get('port'), () => {
-  logger.info('🚀 Server started successfully!');
-  logger.info(`🌐 URL: http://localhost:${app.get('port')}`);
-  logger.info(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
-  logger.info(`📚 API Documentation: http://localhost:${app.get('port')}/docs`);
-  logger.info(`🎯 Press CTRL-C to stop`);
-  logger.info('─'.repeat(50));
+  console.info('🚀 Server started successfully!');
+  console.info(`🌐 URL: http://localhost:${app.get('port')}`);
+  console.info(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.info(
+    `📚 API Documentation: http://localhost:${app.get('port')}/docs`,
+  );
+  console.info(`🎯 Press CTRL-C to stop`);
+  console.info('─'.repeat(50));
 });
 
 // Init MongoDB
 initMongo();
 
 process.on('unhandledRejection', (reason: any) => {
-  logger.error('Unhandled Rejection at:', reason);
+  console.error('Unhandled Rejection at:', reason);
 
   if (isAxiosError(reason)) {
     const { config, response } = reason;

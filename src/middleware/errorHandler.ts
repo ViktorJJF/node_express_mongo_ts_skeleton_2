@@ -3,18 +3,28 @@ import * as utils from '../helpers/utils';
 import { errorReportingMiddleware } from './errorReporting';
 import { notificationManager } from '../services/notifications';
 
+import logger from '../config/logger';
+
+const escapeHtml = (text: string) => {
+  if (text === null || typeof text === 'undefined') {
+    return '';
+  }
+  // Convert non-string types to string
+  const str = String(text);
+  return str.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+};
+
 const errorHandler = (
   err: any,
   req: Request,
   res: Response,
   _next: NextFunction,
 ) => {
-  console.log('🐞 LOG HERE err:', err);
+  logger.error('🐞 LOG HERE err:', err);
   utils.handleError(res, err);
 
-  // Legacy Telegram notification (for backward compatibility)
   if (process.env.TELEGRAM_CHAT_ID) {
-    console.log('🐞 start send notification');
+    logger.info('🐞 start send notification');
 
     // Get detailed error information
     const errorName = err.name || 'Unknown Error';
@@ -30,50 +40,47 @@ const errorHandler = (
     const requestParams = JSON.stringify(req.params, null, 2);
     const requestQuery = JSON.stringify(req.query, null, 2);
 
-    // Check if it's an axios error and extract axios-specific details
     let axiosDetails = '';
     if (err.isAxiosError && err.config) {
       const axiosConfig = err.config;
       const axiosResponse = err.response;
 
-      axiosDetails = `🔗 Axios Request Details:
-• Method: ${axiosConfig.method?.toUpperCase() || 'UNKNOWN'}
-• URL: ${axiosConfig.url || 'unknown'}
-• Base URL: ${axiosConfig.baseURL || 'none'}
-• Timeout: ${axiosConfig.timeout || 'default'}ms
-• Headers: \`\`\`${JSON.stringify(axiosConfig.headers || {}, null, 2)}\`\`\`
-• Data: \`\`\`${JSON.stringify(axiosConfig.data || {}, null, 2)}\`\`\`
-• Params: \`\`\`${JSON.stringify(axiosConfig.params || {}, null, 2)}\`\`\`
+      axiosDetails = `
+<b>🔗 Axios Request Details:</b>
+• <b>Method:</b> <code>${escapeHtml(axiosConfig.method?.toUpperCase() || 'UNKNOWN')}</code>
+• <b>URL:</b> <code>${escapeHtml(axiosConfig.url || 'unknown')}</code>
+• <b>Timeout:</b> <code>${escapeHtml(axiosConfig.timeout || 'default')}ms</code>
+<pre><code>${escapeHtml(JSON.stringify(axiosConfig.data || {}, null, 2))}</code></pre>
 
-📡 Axios Response Details:
-• Status: ${axiosResponse?.status || 'unknown'}
-• Status Text: ${axiosResponse?.statusText || 'unknown'}
-• Response Headers: \`\`\`${JSON.stringify(axiosResponse?.headers || {}, null, 2)}\`\`\`
-• Response Data: \`\`\`${JSON.stringify(axiosResponse?.data || {}, null, 2)}\`\`\`
-
+<b>📡 Axios Response Details:</b>
+• <b>Status:</b> <code>${escapeHtml(axiosResponse?.status || 'unknown')}</code>
+• <b>Status Text:</b> <code>${escapeHtml(axiosResponse?.statusText || 'unknown')}</code>
+<pre><code>${escapeHtml(JSON.stringify(axiosResponse?.data || {}, null, 2))}</code></pre>
 `;
     }
 
-    // Create detailed error message with simpler markdown to avoid parsing issues
-    const detailedErrorMessage = `🚨 API Error Detected 🚨
+    const detailedErrorMessage = `<b>🚨 API Error Detected 🚨</b>
 
-Error Details:
-• Type: ${errorName}
-• Message: ${errorMessage}
-• Code: ${errorCode}
-• Endpoint: ${requestMethod} ${requestUrl}
+<b>Error Details:</b>
+• <b>Type:</b> <code>${escapeHtml(errorName)}</code>
+• <b>Message:</b> ${escapeHtml(errorMessage)}
+• <b>Code:</b> <code>${escapeHtml(errorCode)}</code>
+• <b>Endpoint:</b> <code>${escapeHtml(requestMethod)} ${escapeHtml(requestUrl)}</code>
+${axiosDetails}
+<b>Request Information:</b>
+• <b>Headers:</b>
+<pre><code>${escapeHtml(requestHeaders)}</code></pre>
+• <b>Body:</b>
+<pre><code>${escapeHtml(requestBody)}</code></pre>
+• <b>Params:</b>
+<pre><code>${escapeHtml(requestParams)}</code></pre>
+• <b>Query:</b>
+<pre><code>${escapeHtml(requestQuery)}</code></pre>
 
-${axiosDetails}Request Information:
-• Headers: \`\`\`${requestHeaders}\`\`\`
-• Body: \`\`\`${requestBody}\`\`\`
-• Params: \`\`\`${requestParams}\`\`\`
-• Query: \`\`\`${requestQuery}\`\`\`
+<b>Stack Trace:</b>
+<pre><code>${escapeHtml(errorStack)}</code></pre>`;
 
-Stack Trace:
-\`\`\`
-${errorStack}
-\`\`\``;
-
+    // IMPORTANT: Ensure your notification manager sends with parse_mode: 'HTML'
     notificationManager.sendNotification(
       'telegram',
       process.env.TELEGRAM_CHAT_ID,
