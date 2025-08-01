@@ -18,8 +18,6 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      console.log('🐞 LOG HERE test test');
-      throw new Error('xd');
       const paginatedResponse = await listItemsPaginated<BotType>(req, model);
       res.status(200).json(paginatedResponse);
     } catch (error) {
