@@ -18,7 +18,7 @@ const LOGIN_ATTEMPTS = 5;
 export const generateToken = (user: string): string => {
   const expiration =
     Math.floor(Date.now() / 1000) +
-    60 * parseInt(process.env.JWT_EXPIRATION_IN_MINUTES);
+    60 * parseInt(process.env.JWT_EXPIRATION_IN_MINUTES || '60');
   return auth.encrypt(
     jwt.sign(
       {
@@ -27,7 +27,7 @@ export const generateToken = (user: string): string => {
         },
         exp: expiration,
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'default-secret-key',
     ),
   );
 };

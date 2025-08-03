@@ -7,18 +7,18 @@ import {
   listItemsPaginated,
   updateItem,
 } from '../helpers/db';
-import { User as UserType, CreateUser, UpdateUser } from '../types/users';
+import { IUser } from '../types/users';
 import { SuccessResponse, PaginatedResponse } from '../types/shared/response';
 import { ListQuery } from '../types/shared/query';
 
 class Controller {
   public list = async (
     req: Request<{}, {}, {}, Partial<ListQuery>>,
-    res: Response<PaginatedResponse<UserType>>,
+    res: Response<PaginatedResponse<IUser>>,
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const paginatedResponse = await listItemsPaginated<UserType>(req, User);
+      const paginatedResponse = await listItemsPaginated<IUser>(req, User);
       res.status(200).json(paginatedResponse);
     } catch (error) {
       next(error);
@@ -27,11 +27,11 @@ class Controller {
 
   public listOne = async (
     req: Request<{ id: string }>,
-    res: Response<SuccessResponse<UserType>>,
+    res: Response<SuccessResponse<IUser>>,
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await getItem<UserType>(req.params.id, User);
+      const item = await getItem<IUser>(req.params.id, User);
       res.status(200).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -39,13 +39,13 @@ class Controller {
   };
 
   public create = async (
-    req: Request<{}, {}, CreateUser>,
-    res: Response<SuccessResponse<UserType>>,
+    req: Request<{}, {}, Partial<IUser>>,
+    res: Response<SuccessResponse<IUser>>,
     next: NextFunction,
   ): Promise<void> => {
     try {
       const user = new User(req.body);
-      const item = await createItem<UserType>(user);
+      const item = await createItem<IUser>(user);
       res.status(201).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -53,12 +53,12 @@ class Controller {
   };
 
   public update = async (
-    req: Request<{ id: string }, {}, UpdateUser>,
-    res: Response<SuccessResponse<UserType>>,
+    req: Request<{ id: string }, {}, Partial<IUser>>,
+    res: Response<SuccessResponse<IUser>>,
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await updateItem<UserType>(req.params.id, User, req.body);
+      const item = await updateItem<IUser>(req.params.id, User, req.body);
       res.status(200).json({ ok: true, payload: item });
     } catch (error) {
       next(error);

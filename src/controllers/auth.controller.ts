@@ -141,7 +141,7 @@ export const getRefreshToken = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const tokenEncrypted = req.headers.authorization
+    const tokenEncrypted = (req.headers.authorization || '')
       .replace('Bearer ', '')
       .trim();
     let userId: any = await auth.getUserIdFromToken(tokenEncrypted);
@@ -182,7 +182,7 @@ export const roleAuthorization =
  */
 export const me = async (req: any, res: Response, next: NextFunction) => {
   try {
-    const tokenEncrypted = req.headers.authorization
+    const tokenEncrypted = (req.headers.authorization || '')
       .replace('Bearer ', '')
       .trim();
     const id = await auth.getUserIdFromToken(tokenEncrypted);

@@ -1,10 +1,27 @@
-import { z } from 'zod';
-import {
-  userSchema,
-  createUserSchema,
-  updateUserSchema,
-} from '../../schemas/user.schema';
+import { Document } from 'mongoose';
 
-export type User = z.infer<typeof userSchema>;
-export type CreateUser = z.infer<typeof createUserSchema>;
-export type UpdateUser = z.infer<typeof updateUserSchema>;
+export interface IUser extends Document {
+  _id: string;
+  id: string;
+  first_name: string;
+  last_name?: string;
+  email: string;
+  password: string;
+  role: 'user' | 'admin' | 'SUPERADMIN';
+  verification?: string;
+  verified: boolean;
+  phone?: string;
+  city?: string;
+  country?: string;
+  urlTwitter?: string;
+  urlGitHub?: string;
+  loginAttempts: number;
+  blockExpires: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  comparePassword(passwordAttempt: string): Promise<boolean>;
+}
+
+export interface IUserDocument extends IUser {
+  // Additional methods if any
+}

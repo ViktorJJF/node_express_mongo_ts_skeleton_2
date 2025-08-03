@@ -37,7 +37,9 @@ export const getErrorReportingConfig = (): ErrorReportingConfig => {
   return {
     enabled: process.env.ERROR_REPORTING_ENABLED === 'true',
     telegram: {
-      enabled: process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID,
+      enabled: !!(
+        process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID
+      ),
       chatId: process.env.TELEGRAM_CHAT_ID,
       botToken: process.env.TELEGRAM_BOT_TOKEN,
     },

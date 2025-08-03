@@ -50,7 +50,7 @@ router.post('/auth', async (req, res) => {
 
 router.post('/critical', async (req, res) => {
   const error = new Error('System memory exhausted');
-  error.status = 500;
+  (error as any).status = 500;
 
   await reportCriticalError(error, req, {
     operation: 'memory-intensive-task',

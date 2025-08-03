@@ -61,10 +61,14 @@ export const decrypt = (text: string): string => {
 export const getUserIdFromToken = (token: string): Promise<string> =>
   new Promise((resolve, reject) => {
     // Decrypts, verifies and decode token
-    jwt.verify(decrypt(token), process.env.JWT_SECRET, (err, decoded: any) => {
-      if (err) {
-        reject(buildErrObject(409, 'BAD_TOKEN'));
-      }
-      resolve(decoded.data._id);
-    });
+    jwt.verify(
+      decrypt(token),
+      process.env.JWT_SECRET || 'default-secret-key',
+      (err, decoded: any) => {
+        if (err) {
+          reject(buildErrObject(409, 'BAD_TOKEN'));
+        }
+        resolve(decoded.data._id);
+      },
+    );
   });

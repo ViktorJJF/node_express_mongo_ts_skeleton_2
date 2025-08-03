@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import validator from 'validator';
+import { IForgotPassword } from '../types/models';
 
 const ForgotPasswordSchema = new Schema(
   {
@@ -37,11 +38,14 @@ const ForgotPasswordSchema = new Schema(
     countryChanged: {
       type: String,
     },
-  },
+  } as any,
   {
     versionKey: false,
     timestamps: true,
   },
 );
 
-export default mongoose.model('ForgotPassword', ForgotPasswordSchema);
+export default mongoose.model<IForgotPassword>(
+  'ForgotPassword',
+  ForgotPasswordSchema,
+);

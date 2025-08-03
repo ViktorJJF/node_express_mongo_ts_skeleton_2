@@ -79,9 +79,16 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "noEmit": true
+    "noEmit": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.js"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/types/**/*.d.ts",
+    "src/types/global/*.d.ts"
+  ],
   "exclude": [
     "node_modules/**/*",
     "dist/**/*",

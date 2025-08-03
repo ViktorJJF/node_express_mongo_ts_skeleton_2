@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import passport from 'passport';
+// @ts-ignore
 import trimRequest from 'trim-request';
 import controller from '../../controllers/users.controller';
 import { roleAuthorization } from '../../controllers/auth.controller';

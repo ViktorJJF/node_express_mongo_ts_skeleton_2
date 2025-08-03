@@ -1,7 +1,8 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import validator from 'validator';
+import { IUserAccess } from '../types/models';
 
-const UserAccessSchema = new mongoose.Schema(
+const UserAccessSchema = new Schema(
   {
     email: {
       type: String,
@@ -24,11 +25,11 @@ const UserAccessSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-  },
+  } as any,
   {
     versionKey: false,
     timestamps: true,
   },
 );
 
-export default mongoose.model('UserAccess', UserAccessSchema);
+export default mongoose.model<IUserAccess>('UserAccess', UserAccessSchema);

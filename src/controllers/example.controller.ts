@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '../types/express';
 import {
   reportError,
   reportValidationError,
@@ -55,7 +56,11 @@ class ExampleController {
   /**
    * Example of handling authentication errors
    */
-  public async protectedRoute(req: Request, res: Response, next: NextFunction) {
+  public async protectedRoute(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
       // Simulate authentication error
       if (!req.headers.authorization) {
@@ -69,8 +74,8 @@ class ExampleController {
       }
 
       // Simulate authorization error
-      if (req.user?.role !== 'admin') {
-        const authzError = new Error('Insufficient permissions');
+      if ((req.user as any)?.role !== 'admin') {
+        const authzError = new Error('Insufficient permissions') as any;
         authzError.status = 403;
 
         // Report the authorization error
@@ -133,7 +138,7 @@ class ExampleController {
   ) {
     try {
       // Simulate critical system error
-      const criticalError = new Error('System memory exhausted');
+      const criticalError = new Error('System memory exhausted') as any;
       criticalError.status = 500;
 
       // Report the critical error with additional context
@@ -178,7 +183,7 @@ class ExampleController {
         category: 'internal',
         additionalInfo: {
           businessRule: 'user-verification',
-          userId: req.user?.id,
+          userId: (req.user as any)?.id,
           action: 'profile-update',
           previousValue: req.body.previousValue,
           newValue: req.body.newValue,

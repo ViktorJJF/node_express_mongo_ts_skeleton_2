@@ -1,7 +1,9 @@
 import { check, ValidationChain, validationResult } from 'express-validator';
+import { Request, Response, NextFunction } from 'express';
+
 import * as utils from '../helpers/utils';
 
-type MiddlewareFn = (req: any, res: any, next: any) => void;
+type MiddlewareFn = (req: Request, res: Response, next: NextFunction) => void;
 
 /**
  * Validates register request
@@ -39,11 +41,11 @@ export const register: (ValidationChain | MiddlewareFn)[] = [
     .isLength({ min: 5 })
     .withMessage('PASSWORD_TOO_SHORT_MIN_5'),
 
-  (req, res, next) => {
+  (req: Request, res: Response, next: NextFunction) => {
     try {
       validationResult(req).throw();
       next();
-    } catch (error) {
+    } catch (error: any) {
       utils.handleError(res, utils.buildErrObject(400, error.errors));
     }
   },
@@ -71,11 +73,11 @@ export const login: (ValidationChain | MiddlewareFn)[] = [
     .isLength({ min: 5 })
     .withMessage('PASSWORD_TOO_SHORT_MIN_5'),
 
-  (req, res, next) => {
+  (req: Request, res: Response, next: NextFunction) => {
     try {
       validationResult(req).throw();
       next();
-    } catch (error) {
+    } catch (error: any) {
       utils.handleError(res, utils.buildErrObject(400, error.errors));
     }
   },
@@ -92,7 +94,7 @@ export const verify: (ValidationChain | MiddlewareFn)[] = [
     .isEmpty()
     .withMessage('IS_EMPTY'),
 
-  (req, res, next) => {
+  (req: Request, res: Response, next: NextFunction) => {
     validationResult(req).throw();
     next();
   },
@@ -111,11 +113,11 @@ export const forgotPassword: (ValidationChain | MiddlewareFn)[] = [
     .isEmail()
     .withMessage('EMAIL_IS_NOT_VALID'),
 
-  (req, res, next) => {
+  (req: Request, res: Response, next: NextFunction) => {
     try {
       validationResult(req).throw();
       next();
-    } catch (error) {
+    } catch (error: any) {
       utils.handleError(res, utils.buildErrObject(400, error.errors));
     }
   },
@@ -141,11 +143,11 @@ export const resetPassword: (ValidationChain | MiddlewareFn)[] = [
     .isLength({ min: 5 })
     .withMessage('PASSWORD_TOO_SHORT_MIN_5'),
 
-  (req, res, next) => {
+  (req: Request, res: Response, next: NextFunction) => {
     try {
       validationResult(req).throw();
       next();
-    } catch (error) {
+    } catch (error: any) {
       utils.handleError(res, utils.buildErrObject(400, error.errors));
     }
   },

@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+// @ts-ignore
 import mg from 'nodemailer-mailgun-transport';
 import User from '../models/Users';
 import { buildErrObject } from './utils';

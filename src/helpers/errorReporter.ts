@@ -138,7 +138,7 @@ export const reportAuthorizationError = async (
     category: 'authorization',
     additionalInfo: {
       requiredRole,
-      userRole: request.user?.role,
+      userRole: (request.user as any)?.role,
     },
   });
 };

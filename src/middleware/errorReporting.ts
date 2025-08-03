@@ -72,7 +72,7 @@ export const createErrorReportingMiddleware = (
 };
 
 function shouldReportError(error: any, threshold: string): boolean {
-  const severityLevels = {
+  const severityLevels: Record<string, number> = {
     low: 0,
     medium: 1,
     high: 2,

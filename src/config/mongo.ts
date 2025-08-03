@@ -11,6 +11,9 @@ export default () => {
 
   const connect = async () => {
     try {
+      if (!DB_URL) {
+        throw new Error('DB_URL environment variable is not defined');
+      }
       await mongoose.connect(DB_URL, {
         maxPoolSize: 100, // Maintain up to 50 socket connections
         serverSelectionTimeoutMS: 30000, // Keep trying to send operations for 30 seconds
