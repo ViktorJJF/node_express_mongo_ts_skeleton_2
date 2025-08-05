@@ -128,8 +128,9 @@ async function filterItems<T>(
   return { ok: true, payload };
 }
 
-async function createItem<T>(item: Document): Promise<T> {
-  return (await item.save()) as T;
+async function createItem<T>(item: Record<string, any>, model: ModelInstance): Promise<T> {
+  const newItem = new model(item);
+  return (await newItem.save()) as T;
 }
 
 async function updateItem<T>(
@@ -145,11 +146,12 @@ async function updateItem<T>(
   return await item.save();
 }
 
-async function deleteItem(id: string, model: ModelInstance): Promise<void> {
+async function deleteItem<T>(id: string, model: ModelInstance): Promise<T> {
   const item = await model.findByIdAndDelete(id);
   if (!item) {
     throw buildErrObject(404, 'NOT_FOUND');
   }
+  return item as T;
 }
 
 export const listItemsPaginated = async <T>(

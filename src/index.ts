@@ -41,8 +41,8 @@ try {
 
 const app = express();
 
-// Setup express server port from ENV, default: 3000
-app.set('port', process.env.PORT || 3000);
+// Setup express server port from ENV, default: 3333
+app.set('port', process.env.PORT || 3333);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
