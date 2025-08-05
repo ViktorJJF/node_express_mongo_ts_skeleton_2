@@ -1,14 +1,14 @@
 import express from 'express';
-import controller from '../../controllers/bots.controller';
+import controller from '../../../controllers/bots.controller';
 import {
   requireAuth,
   role,
   checkRole,
   trimRequest,
-} from '../../middleware/auth';
-import { ROLES } from '../../middleware/roles';
-import { validate } from '../../middleware/validator';
-import { createBotSchema, updateBotSchema } from '../../schemas/bot.schema';
+} from '../../../middleware/auth';
+import { ROLES } from '../../../middleware/roles';
+import { validate } from '../../../middleware/validator';
+import { createBotSchema, updateBotSchema } from '../../../schemas/bot.schema';
 import { z } from 'zod';
 
 const router = express.Router();

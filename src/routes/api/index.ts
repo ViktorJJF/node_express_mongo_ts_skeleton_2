@@ -4,18 +4,25 @@ import path from 'path';
 
 const router: Router = express.Router();
 
-// Dynamically load routes from the current directory
-fs.readdirSync(__dirname)
-  .filter(
-    (file) =>
-      file.indexOf('.') !== 0 &&
-      file !== path.basename(__filename) &&
-      file.slice(-3) === '.ts'
-  )
-  .forEach((file) => {
-     
-    const route = require(path.join(__dirname, file)).default;
-    router.use('/', route);
-  });
+// Load versioned routes
+const versions = ['v1', 'v2'];
+
+versions.forEach((version) => {
+  const versionPath = path.join(__dirname, version);
+
+  // Check if version directory exists
+  if (fs.existsSync(versionPath)) {
+    const versionRouter = require(path.join(versionPath, 'index')).default;
+
+    // Mount versioned routes
+    if (version === 'v1') {
+      // v1 is the default version, mount at root
+      router.use('/', versionRouter);
+    }
+
+    // Mount versioned routes at /api/v{version}
+    router.use(`/${version}`, versionRouter);
+  }
+});
 
 export default router;

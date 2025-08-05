@@ -105,7 +105,7 @@ async function registerAllSchemas(schemasDir: string): Promise<number> {
   }
 }
 
-// Function to automatically discover endpoint files
+// Function to automatically discover endpoint files from versioned directories
 async function discoverEndpointFiles(routesDir: string): Promise<string[]> {
   try {
     if (!fs.existsSync(routesDir)) {
@@ -113,21 +113,32 @@ async function discoverEndpointFiles(routesDir: string): Promise<string[]> {
       return [];
     }
 
-    const routeFiles = fs
-      .readdirSync(routesDir)
-      .filter((file) => file.endsWith('.ts') || file.endsWith('.js'))
-      .filter(
-        (file) =>
-          file !== 'index.ts' && file !== 'index.js' && !file.startsWith('.'),
-      )
-      .map((file) => path.join(routesDir, file));
+    const routeFiles: string[] = [];
+    const versions = ['v1', 'v2']; // Add more versions as needed
 
-    if (routeFiles.length === 0) {
-      console.warn(`No route files found in ${routesDir}`);
-      return [];
+    for (const version of versions) {
+      const versionDir = path.join(routesDir, version);
+
+      if (fs.existsSync(versionDir)) {
+        const versionRouteFiles = fs
+          .readdirSync(versionDir)
+          .filter((file) => file.endsWith('.ts') || file.endsWith('.js'))
+          .filter(
+            (file) =>
+              file !== 'index.ts' && file !== 'index.js' && !file.startsWith('.'),
+          )
+          .map((file) => path.join(versionDir, file));
+
+        routeFiles.push(...versionRouteFiles);
+        console.log(`Discovered ${versionRouteFiles.length} endpoint files from ${version}:`, versionRouteFiles);
+      }
     }
 
-    console.log(`Discovered ${routeFiles.length} endpoint files:`, routeFiles);
+    if (routeFiles.length === 0) {
+      console.warn(`No route files found in ${routesDir} or its version subdirectories`);
+    }
+
+    console.log(`Total discovered endpoint files: ${routeFiles.length}`);
     return routeFiles;
   } catch (error) {
     console.error('Error reading routes directory:', error);
@@ -206,7 +217,7 @@ async function generateSwagger(config: SwaggerConfig): Promise<void> {
 const defaultConfig: SwaggerConfig = {
   title: 'Node Express MongoDB JWT REST API Skeleton',
   description:
-    'A comprehensive REST API skeleton with authentication, authorization, and MongoDB integration',
+    'A comprehensive REST API skeleton with authentication, authorization, and MongoDB integration. Supports API versioning with v1 (stable) and v2 (future) endpoints.',
   version: '9.0.5',
   contact: {
     name: 'API Support',
@@ -215,7 +226,15 @@ const defaultConfig: SwaggerConfig = {
   servers: [
     {
       url: 'http://localhost:3000/api',
-      description: 'Development server',
+      description: 'Development server - v1 (default)',
+    },
+    {
+      url: 'http://localhost:3000/api/v1',
+      description: 'Development server - v1 (explicit)',
+    },
+    {
+      url: 'http://localhost:3000/api/v2',
+      description: 'Development server - v2',
     },
   ],
   outputFile: './swagger.json',

@@ -2,14 +2,14 @@ import { Router } from 'express';
 import passport from 'passport';
 // @ts-ignore
 import trimRequest from 'trim-request';
-import controller from '../../controllers/users.controller';
-import { roleAuthorization } from '../../controllers/auth.controller';
-import { createUserSchema, updateUserSchema } from '../../schemas/user.schema';
-import { validate } from '../../middleware/validator';
+import controller from '../../../controllers/users.controller';
+import { roleAuthorization } from '../../../controllers/auth.controller';
+import { createUserSchema, updateUserSchema } from '../../../schemas/user.schema';
+import { validate } from '../../../middleware/validator';
 import { z } from 'zod';
 
 const router = Router();
-require('../../config/passport');
+require('../../../config/passport');
 
 const requireAuth = passport.authenticate('jwt', {
   session: false,

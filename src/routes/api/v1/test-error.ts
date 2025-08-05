@@ -5,7 +5,7 @@ import {
   reportDatabaseError,
   reportAuthError,
   reportCriticalError,
-} from '../../helpers/errorReporter';
+} from '../../../helpers/errorReporter';
 
 const router = Router();
 
