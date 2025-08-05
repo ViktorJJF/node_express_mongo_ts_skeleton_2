@@ -44,8 +44,7 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const user = new User(req.body);
-      const item = await createItem<IUser>(user);
+      const item = await createItem<IUser>(req.body, User);
       res.status(201).json({ ok: true, payload: item });
     } catch (error) {
       next(error);

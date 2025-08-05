@@ -6,8 +6,18 @@ import {
   getItem,
   listItemsPaginated,
   updateItem,
+  createItems,
+  updateItems,
+  deleteItems,
 } from '../helpers/db';
-import { IBot, ICreateBot, IUpdateBot } from '../types/bots';
+import {
+  IBot,
+  ICreateBot,
+  IUpdateBot,
+  IBulkCreateBots,
+  IBulkUpdateBots,
+  IBulkDeleteBots,
+} from '../types/bots';
 import { SuccessResponse, PaginatedResponse } from '../types/shared/response';
 import { ListQuery } from '../types/shared/query';
 import { itemExists, itemExistsExcludingItself } from '../helpers/db';
@@ -89,6 +99,84 @@ class Controller {
       const { id } = req.params;
       const deletedItem = await deleteItem<IBot>(id, model);
       res.status(200).json({ ok: true, payload: deletedItem });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public bulkCreate = async (
+    req: Request<{}, {}, IBulkCreateBots>,
+    res: Response<SuccessResponse<{ created: number; items: IBot[] }>>,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { bots } = req.body;
+
+      // Check for duplicate names within the request
+      const names = bots.map((bot) => bot.name);
+      const duplicateNames = names.filter(
+        (name, index) => names.indexOf(name) !== index,
+      );
+      if (duplicateNames.length > 0) {
+        throw new Error(
+          `Duplicate names found in request: ${duplicateNames.join(', ')}`,
+        );
+      }
+
+      // Check if any bots with these names already exist
+      for (const bot of bots) {
+        await itemExists(bot, model, UNIQUE_FIELDS);
+      }
+
+      const createdItems = await createItems<IBot>(bots, model);
+      res.status(200).json({
+        ok: true,
+        payload: {
+          created: createdItems.length,
+          items: createdItems,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public bulkUpdate = async (
+    req: Request<{}, {}, IBulkUpdateBots>,
+    res: Response<SuccessResponse<{ modified: number; items: IBot[] }>>,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { updates } = req.body;
+
+      // Validate each update for uniqueness constraints
+      for (const update of updates) {
+        if (update.data.name) {
+          await itemExistsExcludingItself(
+            update.id,
+            model,
+            update.data,
+            UNIQUE_FIELDS,
+          );
+        }
+      }
+
+      const result = await updateItems<IBot>(updates, model);
+      res.status(200).json({ ok: true, payload: result });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public bulkDelete = async (
+    req: Request<{}, {}, IBulkDeleteBots>,
+    res: Response<SuccessResponse<{ deleted: number; items: IBot[] }>>,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { ids } = req.body;
+      const result = await deleteItems<IBot>(ids, model);
+      res.status(200).json({ ok: true, payload: result });
     } catch (error) {
       next(error);
     }

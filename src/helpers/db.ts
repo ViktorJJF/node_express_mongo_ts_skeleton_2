@@ -128,7 +128,10 @@ async function filterItems<T>(
   return { ok: true, payload };
 }
 
-async function createItem<T>(item: Record<string, any>, model: ModelInstance): Promise<T> {
+async function createItem<T>(
+  item: Record<string, any>,
+  model: ModelInstance,
+): Promise<T> {
   const newItem = new model(item);
   return (await newItem.save()) as T;
 }
@@ -152,6 +155,53 @@ async function deleteItem<T>(id: string, model: ModelInstance): Promise<T> {
     throw buildErrObject(404, 'NOT_FOUND');
   }
   return item as T;
+}
+
+async function createItems<T>(
+  items: Record<string, any>[],
+  model: ModelInstance,
+): Promise<T[]> {
+  const createdItems = await model.insertMany(items);
+  return createdItems as T[];
+}
+
+async function updateItems<T>(
+  updates: { id: string; data: Record<string, any> }[],
+  model: ModelInstance,
+): Promise<{ modified: number; items: T[] }> {
+  const bulkOps = updates.map((update) => ({
+    updateOne: {
+      filter: { _id: update.id },
+      update: { $set: update.data },
+    },
+  }));
+
+  const result = await model.bulkWrite(bulkOps);
+
+  // Fetch updated items
+  const ids = updates.map((u) => u.id);
+  const updatedItems = await model.find({ _id: { $in: ids } });
+
+  return {
+    modified: result.modifiedCount,
+    items: updatedItems as T[],
+  };
+}
+
+async function deleteItems<T>(
+  ids: string[],
+  model: ModelInstance,
+): Promise<{ deleted: number; items: T[] }> {
+  // First get the items that will be deleted
+  const itemsToDelete = await model.find({ _id: { $in: ids } });
+
+  // Then delete them
+  const result = await model.deleteMany({ _id: { $in: ids } });
+
+  return {
+    deleted: result.deletedCount,
+    items: itemsToDelete as T[],
+  };
 }
 
 export const listItemsPaginated = async <T>(
@@ -214,4 +264,7 @@ export {
   createItem,
   updateItem,
   deleteItem,
+  createItems,
+  updateItems,
+  deleteItems,
 };
