@@ -1,4 +1,5 @@
 import { z } from '../lib/zod';
+import mongoose from 'mongoose';
 
 export const paginatedResponseSchema = <T extends z.ZodTypeAny>(
   itemSchema: T,
@@ -32,4 +33,10 @@ export const validationErrorSchema = z.object({
       message: z.string(),
     }),
   ),
+});
+
+export const idSchema = z.string().refine((val) => {
+  return mongoose.Types.ObjectId.isValid(val);
+}, {
+  message: 'Invalid ObjectId format'
 });

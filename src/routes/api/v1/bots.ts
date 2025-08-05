@@ -9,6 +9,7 @@ import {
 import { ROLES } from '../../../middleware/roles';
 import { validate } from '../../../middleware/validator';
 import { createBotSchema, updateBotSchema } from '../../../schemas/bot.schema';
+import { idSchema } from '../../../schemas/shared.schema';
 import { z } from 'zod';
 
 const router = express.Router();
@@ -45,6 +46,7 @@ router.get(
   // #swagger.parameters['id'] = { in: 'path', description: 'Bot id', required: true, type: 'string' }
   // #swagger.responses[200] = { description: 'A bot', content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbotSchema' } } } }
   requireAuth,
+  validate(z.object({ params: z.object({ id: idSchema }) })),
   controller.listOne,
 );
 
@@ -81,7 +83,10 @@ router.put(
   role(ROLES.Admin),
   checkRole,
   trimRequest.all,
-  validate(z.object({ body: updateBotSchema })),
+  validate(z.object({
+    params: z.object({ id: idSchema }),
+    body: updateBotSchema
+  })),
   controller.update,
 );
 
@@ -98,6 +103,7 @@ router.delete(
   // requireAuth,
   // role(ROLES.Admin),
   // checkRole,
+  validate(z.object({ params: z.object({ id: idSchema }) })),
   controller.delete,
 );
 
