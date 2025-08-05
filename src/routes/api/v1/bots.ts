@@ -45,7 +45,7 @@ router.get(
   // #swagger.summary = 'Get a bot by id'
   // #swagger.parameters['id'] = { in: 'path', description: 'Bot id', required: true, type: 'string' }
   // #swagger.responses[200] = { description: 'A bot', content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbotSchema' } } } }
-  requireAuth,
+  // requireAuth,
   validate(z.object({ params: z.object({ id: idSchema }) })),
   controller.listOne,
 );

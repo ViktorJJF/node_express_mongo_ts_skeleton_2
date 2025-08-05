@@ -50,7 +50,7 @@ async function checkQueryString(
 ): Promise<Record<string, any>> {
   const queries: Record<string, any> = {};
   for (const key in query) {
-    if (query.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(query, key)) {
       const element = query[key];
       if (key !== 'filter' && key !== 'fields' && key !== 'page') {
         queries[key] = element;
