@@ -3,7 +3,15 @@ import passport from 'passport';
 // @ts-ignore
 import trimRequest from 'trim-request';
 import * as controller from '../../../controllers/auth.controller';
-import * as validate from '../../../controllers/auth.validate';
+import { validate } from '../../../middleware/validator';
+import {
+  registerSchema,
+  loginSchema,
+  verifySchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from '../../../schemas/auth.schema';
+import { z } from 'zod';
 
 const router: Router = express.Router();
 import '../../../config/passport';
@@ -57,7 +65,7 @@ router.post(
           }
       } */
     trimRequest.all,
-    validate.register,
+    validate(z.object({ body: registerSchema })),
     controller.register,
 );
 
@@ -103,7 +111,7 @@ router.post(
           }
       } */
     trimRequest.all,
-    validate.verify,
+    validate(z.object({ body: verifySchema })),
     controller.verify,
 );
 
@@ -159,7 +167,7 @@ router.post(
           }
       } */
     trimRequest.all,
-    validate.forgotPassword,
+    validate(z.object({ body: forgotPasswordSchema })),
     controller.forgotPassword,
 );
 
@@ -206,7 +214,7 @@ router.post(
           }
       } */
     trimRequest.all,
-    validate.resetPassword,
+    validate(z.object({ body: resetPasswordSchema })),
     controller.resetPassword,
 );
 
@@ -285,7 +293,7 @@ router.post(
           }
       } */
     trimRequest.all,
-    validate.login,
+    validate(z.object({ body: loginSchema })),
     controller.login,
 );
 
