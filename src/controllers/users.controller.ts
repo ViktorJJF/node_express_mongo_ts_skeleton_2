@@ -7,7 +7,7 @@ import {
   listItemsPaginated,
   updateItem,
 } from '../helpers/db';
-import { IUser } from '../types/users';
+import { IUser } from '../types/entities';
 import { SuccessResponse, PaginatedResponse } from '../types/shared/response';
 import { ListQuery } from '../types/shared/query';
 

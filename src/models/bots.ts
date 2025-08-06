@@ -1,6 +1,6 @@
 import mongoose, { Schema, PaginateModel } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
-import { IBot } from '../types/bots';
+import { IBot } from '../types/entities/bots';
 
 const schema = new Schema(
   {

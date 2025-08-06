@@ -17,7 +17,7 @@ import {
   IBulkCreateBots,
   IBulkUpdateBots,
   IBulkDeleteBots,
-} from '../types/bots';
+} from '../types/entities/bots';
 import { SuccessResponse, PaginatedResponse } from '../types/shared/response';
 import { ListQuery } from '../types/shared/query';
 import { itemExists, itemExistsExcludingItself } from '../helpers/db';

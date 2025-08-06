@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import validator from 'validator';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import logger from '../config/logger';
-import { IUser } from '../types/users';
+import { IUser } from '../types/entities';
 
 const UserSchema = new Schema(
   {

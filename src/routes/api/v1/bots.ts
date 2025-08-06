@@ -43,6 +43,59 @@ router.get(
 );
 
 /*
+ * Bulk create bots
+ */
+router.post(
+  '/bots/bulk',
+  // #swagger.tags = ['Bots']
+  // #swagger.summary = 'Create multiple bots at once'
+  // #swagger.requestBody = { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkCreateBotsSchema' } } } }
+  // #swagger.responses[200] = { description: 'Bots created successfully', content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkCreateBotsResponseSchema' } } } }
+  // #swagger.responses[403] = { description: 'Forbidden - Admin access required', content: { 'application/json': { schema: { $ref: '#/components/schemas/SharederrorResponseSchema' } } } }
+  // requireAuth,
+  // role(ROLES.Admin),
+  // checkRole,
+  trimRequest.all,
+  validate(z.object({ body: bulkCreateBotsSchema })),
+  controller.bulkCreate,
+);
+
+/*
+ * Bulk update bots
+ */
+router.put(
+  '/bots/bulk',
+  // #swagger.tags = ['Bots']
+  // #swagger.summary = 'Update multiple bots at once'
+  // #swagger.requestBody = { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkUpdateBotsSchema' } } } }
+  // #swagger.responses[200] = { description: 'Bots updated successfully', content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkUpdateBotsResponseSchema' } } } }
+  // #swagger.responses[403] = { description: 'Forbidden - Admin access required', content: { 'application/json': { schema: { $ref: '#/components/schemas/SharederrorResponseSchema' } } } }
+  requireAuth,
+  role(ROLES.Admin),
+  checkRole,
+  trimRequest.all,
+  validate(z.object({ body: bulkUpdateBotsSchema })),
+  controller.bulkUpdate,
+);
+
+/*
+ * Bulk delete bots
+ */
+router.delete(
+  '/bots/bulk',
+  // #swagger.tags = ['Bots']
+  // #swagger.summary = 'Delete multiple bots at once'
+  // #swagger.requestBody = { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkDeleteBotsSchema' } } } }
+  // #swagger.responses[200] = { description: 'Bots deleted successfully', content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkDeleteBotsResponseSchema' } } } }
+  // #swagger.responses[403] = { description: 'Forbidden - Admin access required', content: { 'application/json': { schema: { $ref: '#/components/schemas/SharederrorResponseSchema' } } } }
+  // requireAuth,
+  // role(ROLES.Admin),
+  // checkRole,
+  validate(z.object({ body: bulkDeleteBotsSchema })),
+  controller.bulkDelete,
+);
+
+/*
  * Get bot by id
  */
 router.get(
@@ -113,59 +166,6 @@ router.delete(
   // checkRole,
   validate(z.object({ params: z.object({ id: idSchema }) })),
   controller.delete,
-);
-
-/*
- * Bulk create bots
- */
-router.post(
-  '/bots/bulk',
-  // #swagger.tags = ['Bots']
-  // #swagger.summary = 'Create multiple bots at once'
-  // #swagger.requestBody = { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkCreateBotsSchema' } } } }
-  // #swagger.responses[200] = { description: 'Bots created successfully', content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkCreateBotsResponseSchema' } } } }
-  // #swagger.responses[403] = { description: 'Forbidden - Admin access required', content: { 'application/json': { schema: { $ref: '#/components/schemas/SharederrorResponseSchema' } } } }
-  // requireAuth,
-  // role(ROLES.Admin),
-  // checkRole,
-  trimRequest.all,
-  validate(z.object({ body: bulkCreateBotsSchema })),
-  controller.bulkCreate,
-);
-
-/*
- * Bulk update bots
- */
-router.put(
-  '/bots/bulk',
-  // #swagger.tags = ['Bots']
-  // #swagger.summary = 'Update multiple bots at once'
-  // #swagger.requestBody = { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkUpdateBotsSchema' } } } }
-  // #swagger.responses[200] = { description: 'Bots updated successfully', content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkUpdateBotsResponseSchema' } } } }
-  // #swagger.responses[403] = { description: 'Forbidden - Admin access required', content: { 'application/json': { schema: { $ref: '#/components/schemas/SharederrorResponseSchema' } } } }
-  requireAuth,
-  role(ROLES.Admin),
-  checkRole,
-  trimRequest.all,
-  validate(z.object({ body: bulkUpdateBotsSchema })),
-  controller.bulkUpdate,
-);
-
-/*
- * Bulk delete bots
- */
-router.delete(
-  '/bots/bulk',
-  // #swagger.tags = ['Bots']
-  // #swagger.summary = 'Delete multiple bots at once'
-  // #swagger.requestBody = { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkDeleteBotsSchema' } } } }
-  // #swagger.responses[200] = { description: 'Bots deleted successfully', content: { 'application/json': { schema: { $ref: '#/components/schemas/BotbulkDeleteBotsResponseSchema' } } } }
-  // #swagger.responses[403] = { description: 'Forbidden - Admin access required', content: { 'application/json': { schema: { $ref: '#/components/schemas/SharederrorResponseSchema' } } } }
-  // requireAuth,
-  // role(ROLES.Admin),
-  // checkRole,
-  validate(z.object({ body: bulkDeleteBotsSchema })),
-  controller.bulkDelete,
 );
 
 export default router;
