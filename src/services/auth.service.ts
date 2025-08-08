@@ -83,7 +83,7 @@ export const findUser = async (email: string): Promise<any> => {
 export const findUserById = async (userId: number): Promise<any> => {
   try {
     return await db.getItem(userId, users);
-  } catch (error) {
+  } catch {
     throw buildErrObject(404, 'La cuenta no existe');
   }
 };
@@ -127,7 +127,7 @@ export const verificationExists = async (id: string): Promise<any> => {
 };
 
 export const verifyUser = async (user: any) => {
-  const item = await db.updateItem(user.id, users, {
+  const item: any = await db.updateItem(user.id, users, {
     verified: true,
   });
   return {
@@ -217,12 +217,12 @@ export const forgotPasswordResponse = (item: any) => {
 
 export const checkPermissions = async (data: any, next: any) => {
   try {
-    const result = await db.getItem(data.id, users);
+  const result: any = await db.getItem(data.id, users);
     if (data.roles.indexOf(result.role) > -1) {
       return next();
     }
     throw buildErrObject(401, 'UNAUTHORIZED');
-  } catch (error) {
+  } catch {
     throw buildErrObject(404, 'NOT_FOUND');
   }
 };

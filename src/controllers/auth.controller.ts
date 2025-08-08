@@ -20,7 +20,7 @@ export const login = async (
     const user: any = await AuthService.findUser(body.email);
     AuthService.userIsBlocked(user);
     await AuthService.checkLoginAttemptsAndBlockExpires(user);
-    const isPasswordMatch: any = await auth.checkPasswordWithUser(
+    const isPasswordMatch: any = await auth.checkPasswordUser(
       body.password,
       user,
     );

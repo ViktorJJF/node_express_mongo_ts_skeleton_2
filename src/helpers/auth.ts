@@ -150,4 +150,4 @@ export { checkPassword as default };
 
 // Keep the old function names for backward compatibility
 export const checkPasswordAgainstHash = checkPassword;
-export { checkPasswordWithUser as checkPassword };
+export { checkPasswordWithUser as checkPasswordUser };

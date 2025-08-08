@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { SQL, eq, or, sql, count, asc, desc, and, ilike } from 'drizzle-orm';
-import { PgTable, PgColumn } from 'drizzle-orm/pg-core';
+import { PgColumn, PgTable } from 'drizzle-orm/pg-core';
 import { PaginatedResponse } from '../types/shared/response';
 import { buildErrObject } from './utils';
 import logger from '../config/logger';
@@ -9,7 +9,7 @@ import getDatabase from '../config/database';
 const buildSort = (
   sort: string,
   order: number | string,
-  table: PgTable,
+  table: any,
 ): SQL<unknown> | undefined => {
   // Get column from table
   const column = (table as any)[sort] as PgColumn;
@@ -51,7 +51,7 @@ const listInitOptions = async (req: Request): Promise<Record<string, any>> => {
 
 async function checkQueryString(
   query: Record<string, any>,
-  table: PgTable,
+  table: any,
 ): Promise<SQL<unknown> | undefined> {
   const conditions: SQL<unknown>[] = [];
 
@@ -98,16 +98,16 @@ async function checkQueryString(
   }
 }
 
-async function getAllItems<T extends PgTable>(table: T): Promise<any> {
+async function getAllItems<T>(table: T): Promise<any> {
   try {
     const db = getDatabase();
     const nameColumn = (table as any).name as PgColumn;
     const orderBy = nameColumn ? [asc(nameColumn)] : undefined;
 
-    const result = await db
+    const result = await (db
       .select()
-      .from(table)
-      .orderBy(...(orderBy || []));
+      .from(table as any)
+      .orderBy(...(orderBy || [])) as any);
     return result;
   } catch (error) {
     logger.error('Error getting all items:', error);
@@ -115,7 +115,7 @@ async function getAllItems<T extends PgTable>(table: T): Promise<any> {
   }
 }
 
-async function getItems<T extends PgTable, R>(
+async function getItems<T, R>(
   req: Request,
   table: T,
   query: Record<string, any>,
@@ -136,14 +136,14 @@ async function getItems<T extends PgTable, R>(
     const offset = (options.page - 1) * options.limit;
 
     // Get total count
-    const totalQuery = db.select({ count: count() }).from(table);
+    const totalQuery: any = (db.select({ count: count() }).from(table as any) as any);
     if (whereCondition) {
       totalQuery.where(whereCondition);
     }
     const [{ count: totalCount }] = await totalQuery;
 
     // Get paginated results
-    let selectQuery = db.select().from(table);
+    let selectQuery: any = (db.select().from(table as any) as any);
     if (whereCondition) {
       selectQuery = selectQuery.where(whereCondition);
     }
@@ -152,7 +152,7 @@ async function getItems<T extends PgTable, R>(
     }
     selectQuery = selectQuery.limit(options.limit).offset(offset);
 
-    const data = await selectQuery;
+    const data = (await selectQuery) as any[];
 
     const result = {
       data,
@@ -176,7 +176,7 @@ async function getItems<T extends PgTable, R>(
   }
 }
 
-async function getAggregatedItems<T extends PgTable, R>(
+async function getAggregatedItems<T, R>(
   req: Request,
   table: T,
   // aggregated is not directly applicable to Drizzle, but we can simulate with complex queries
@@ -190,6 +190,7 @@ async function getAggregatedItems<T extends PgTable, R>(
       return await getItems<T, R>(req, table, {});
     }
 
+    const db = getDatabase();
     const result = await customQuery(db, table, options);
     return cleanPaginationID(result);
   } catch (error) {
@@ -198,11 +199,14 @@ async function getAggregatedItems<T extends PgTable, R>(
   }
 }
 
-async function getItem<T extends PgTable, R>(id: number, table: T): Promise<R> {
+async function getItem<T, R>(id: number, table: T): Promise<R> {
   try {
     const db = getDatabase();
     const idColumn = (table as any).id as PgColumn;
-    const result = await db.select().from(table).where(eq(idColumn, id));
+    const result = (await (db
+      .select()
+      .from(table as any)
+      .where(eq(idColumn, id)) as any)) as any[];
 
     if (!result || result.length === 0) {
       throw buildErrObject(404, 'NOT_FOUND');
@@ -218,7 +222,7 @@ async function getItem<T extends PgTable, R>(id: number, table: T): Promise<R> {
   }
 }
 
-async function filterItems<T extends PgTable, R>(
+async function filterItems<T, R>(
   fields: Record<string, any>,
   table: T,
 ): Promise<{ ok: boolean; payload: R[] }> {
@@ -232,12 +236,13 @@ async function filterItems<T extends PgTable, R>(
       }
     }
 
-    let query = db.select().from(table);
+    const db = getDatabase();
+    let query: any = (db.select().from(table as any) as any);
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
     }
 
-    const payload = await query;
+    const payload = (await query) as any[];
     return { ok: true, payload: payload as R[] };
   } catch (error) {
     logger.error('Error filtering items:', error);
@@ -245,21 +250,24 @@ async function filterItems<T extends PgTable, R>(
   }
 }
 
-async function createItem<T extends PgTable, R>(
+async function createItem<T, R>(
   item: Record<string, any>,
   table: T,
 ): Promise<R> {
   try {
     const db = getDatabase();
-    const result = await db.insert(table).values(item).returning();
-    return result[0] as R;
+    const result = (await (db
+      .insert(table as any)
+      .values(item as any)
+      .returning() as any)) as any[];
+    return (result && result[0] ? (result[0] as R) : (undefined as any)) as R;
   } catch (error) {
     logger.error('Error creating item:', error);
     throw error;
   }
 }
 
-async function updateItem<T extends PgTable, R>(
+async function updateItem<T, R>(
   id: number,
   table: T,
   body: Record<string, any>,
@@ -274,11 +282,11 @@ async function updateItem<T extends PgTable, R>(
       updatedAt: new Date(),
     };
 
-    const result = await db
-      .update(table)
-      .set(updatedBody)
+    const result = (await (db
+      .update(table as any)
+      .set(updatedBody as any)
       .where(eq(idColumn, id))
-      .returning();
+      .returning() as any)) as any[];
 
     if (!result || result.length === 0) {
       throw buildErrObject(404, 'NOT_FOUND');
@@ -294,14 +302,17 @@ async function updateItem<T extends PgTable, R>(
   }
 }
 
-async function deleteItem<T extends PgTable, R>(
+async function deleteItem<T, R>(
   id: number,
   table: T,
 ): Promise<R> {
   try {
     const db = getDatabase();
     const idColumn = (table as any).id as PgColumn;
-    const result = await db.delete(table).where(eq(idColumn, id)).returning();
+    const result = (await (db
+      .delete(table as any)
+      .where(eq(idColumn, id))
+      .returning() as any)) as any[];
 
     if (!result || result.length === 0) {
       throw buildErrObject(404, 'NOT_FOUND');
@@ -317,21 +328,24 @@ async function deleteItem<T extends PgTable, R>(
   }
 }
 
-async function createItems<T extends PgTable, R>(
+async function createItems<T, R>(
   items: Record<string, any>[],
   table: T,
 ): Promise<R[]> {
   try {
     const db = getDatabase();
-    const result = await db.insert(table).values(items).returning();
-    return result as R[];
+    const result = (await (db
+      .insert(table as any)
+      .values(items as any)
+      .returning() as any)) as any[];
+    return (result as unknown) as R[];
   } catch (error) {
     logger.error('Error creating items:', error);
     throw error;
   }
 }
 
-async function updateItems<T extends PgTable, R>(
+async function updateItems<T, R>(
   updates: { id: number; data: Record<string, any> }[],
   table: T,
 ): Promise<{ modified: number; items: R[] }> {
@@ -348,11 +362,11 @@ async function updateItems<T extends PgTable, R>(
           updatedAt: new Date(),
         };
 
-        const result = await db
-          .update(table)
-          .set(updatedBody)
+        const result = (await (db
+          .update(table as any)
+          .set(updatedBody as any)
           .where(eq(idColumn, update.id))
-          .returning();
+          .returning() as any)) as any[];
 
         if (result && result.length > 0) {
           updatedItems.push(result[0] as R);
@@ -373,7 +387,7 @@ async function updateItems<T extends PgTable, R>(
   }
 }
 
-async function deleteItems<T extends PgTable, R>(
+async function deleteItems<T, R>(
   ids: number[],
   table: T,
 ): Promise<{ deleted: number; items: R[] }> {
@@ -384,10 +398,10 @@ async function deleteItems<T extends PgTable, R>(
 
     for (const id of ids) {
       try {
-        const result = await db
-          .delete(table)
+        const result = (await (db
+          .delete(table as any)
           .where(eq(idColumn, id))
-          .returning();
+          .returning() as any)) as any[];
         if (result && result.length > 0) {
           deletedItems.push(result[0] as R);
         }
@@ -417,7 +431,12 @@ export const listItemsPaginated = async <T extends PgTable, R>(
   delete query.order;
 
   const fields = req.query.fields as string;
-  const paginatedResponse = await getItems<T, R>(req, table, query, fields);
+  const paginatedResponse = await getItems<T, R>(
+    req,
+    (table as unknown) as T,
+    query,
+    fields,
+  );
   return paginatedResponse;
 };
 
@@ -446,7 +465,7 @@ export const itemExists = async <T extends PgTable>(
 
     const result = await db
       .select()
-      .from(table)
+      .from((table as unknown) as any)
       .where(and(...conditions))
       .limit(1);
 
@@ -492,7 +511,7 @@ export const itemExistsExcludingItself = async <T extends PgTable>(
 
     const result = await db
       .select()
-      .from(table)
+      .from((table as unknown) as any)
       .where(and(...conditions))
       .limit(1);
 

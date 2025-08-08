@@ -87,13 +87,17 @@ class Controller {
     try {
       const { id } = req.params;
       const doesItemExist = await itemExistsExcludingItself(
-        id,
-        bots,
+        parseInt(id, 10),
         req.body,
+        bots,
         UNIQUE_FIELDS,
       );
       if (!doesItemExist) {
-        const item = await updateItem<typeof bots, IBot>(id, bots, req.body);
+        const item = await updateItem<typeof bots, IBot>(
+          parseInt(id, 10),
+          bots,
+          req.body,
+        );
         res.status(200).json({ ok: true, payload: item });
       }
     } catch (error) {
@@ -121,10 +125,10 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const { bots } = req.body;
+      const { bots: items } = req.body;
 
       // Check for duplicate names within the request
-      const names = bots.map((bot) => bot.name);
+      const names = items.map((item) => item.name);
       const duplicateNames = names.filter(
         (name, index) => names.indexOf(name) !== index,
       );
@@ -135,12 +139,12 @@ class Controller {
       }
 
       // Check if any bots with these names already exist
-      for (const bot of validatedData.bots) {
-        await itemExists(bot, bots, UNIQUE_FIELDS);
+      for (const item of items) {
+        await itemExists(item, bots, UNIQUE_FIELDS);
       }
 
       const createdItems = await createItems<typeof bots, IBot>(
-        validatedData.bots,
+        items,
         bots,
       );
       res.status(200).json({
@@ -167,15 +171,15 @@ class Controller {
       for (const update of updates) {
         if (update.data.name) {
           await itemExistsExcludingItself(
-            update.id,
-            bots,
+            parseInt(update.id, 10),
             update.data,
+            bots,
             UNIQUE_FIELDS,
           );
         }
       }
 
-      const updatesData = validatedData.updates.map((update) => ({
+      const updatesData = updates.map((update) => ({
         id: parseInt(update.id, 10),
         data: update.data,
       }));
