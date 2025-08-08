@@ -17,19 +17,19 @@ const router: Router = express.Router();
 import '../../../config/passport';
 
 const requireAuth = passport.authenticate('jwt', {
-    session: false,
+  session: false,
 });
 
 router.post(
-    '/register',
-    /* #swagger.tags = ['Authentication']
+  '/register',
+  /* #swagger.tags = ['Authentication']
       #swagger.summary = 'Register a new user'
       #swagger.requestBody = {
           required: true,
           content: {
               'application/json': {
                   schema: {
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UseruserSchema'
                   }
               }
           }
@@ -39,7 +39,7 @@ router.post(
           content: {
               'application/json': {
                   schema: {
-                      $ref: '#/components/schemas/AuthResponse'
+                      $ref: '#/components/schemas/UserauthResponseSchema'
                   }
               }
           }
@@ -49,7 +49,7 @@ router.post(
           content: {
               'application/json': {
                   schema: {
-                      $ref: '#/components/schemas/ValidationError'
+                      $ref: '#/components/schemas/SharedvalidationErrorSchema'
                   }
               }
           }
@@ -64,14 +64,14 @@ router.post(
               }
           }
       } */
-    trimRequest.all,
-    validate(z.object({ body: registerSchema })),
-    controller.register,
+  trimRequest.all,
+  validate(z.object({ body: registerSchema })),
+  controller.register,
 );
 
 router.post(
-    '/verify',
-    /* #swagger.tags = ['Authentication']
+  '/verify',
+  /* #swagger.tags = ['Authentication']
       #swagger.summary = 'Verify user email'
       #swagger.requestBody = {
           required: true,
@@ -110,14 +110,14 @@ router.post(
               }
           }
       } */
-    trimRequest.all,
-    validate(z.object({ body: verifySchema })),
-    controller.verify,
+  trimRequest.all,
+  validate(z.object({ body: verifySchema })),
+  controller.verify,
 );
 
 router.post(
-    '/forgot',
-    /* #swagger.tags = ['Authentication']
+  '/forgot',
+  /* #swagger.tags = ['Authentication']
       #swagger.summary = 'Request password reset'
       #swagger.requestBody = {
           required: true,
@@ -166,14 +166,14 @@ router.post(
               }
           }
       } */
-    trimRequest.all,
-    validate(z.object({ body: forgotPasswordSchema })),
-    controller.forgotPassword,
+  trimRequest.all,
+  validate(z.object({ body: forgotPasswordSchema })),
+  controller.forgotPassword,
 );
 
 router.post(
-    '/reset',
-    /* #swagger.tags = ['Authentication']
+  '/reset',
+  /* #swagger.tags = ['Authentication']
       #swagger.summary = 'Reset password with token'
       #swagger.requestBody = {
           required: true,
@@ -213,14 +213,14 @@ router.post(
               }
           }
       } */
-    trimRequest.all,
-    validate(z.object({ body: resetPasswordSchema })),
-    controller.resetPassword,
+  trimRequest.all,
+  validate(z.object({ body: resetPasswordSchema })),
+  controller.resetPassword,
 );
 
 router.get(
-    '/token',
-    /* #swagger.tags = ['Authentication']
+  '/token',
+  /* #swagger.tags = ['Authentication']
       #swagger.summary = 'Get new refresh token'
       #swagger.security = [{ "BearerAuth": [] }]
       #swagger.responses[200] = {
@@ -248,15 +248,15 @@ router.get(
               }
           }
       } */
-    requireAuth,
-    controller.roleAuthorization(['USER', 'ADMIN', 'SUPERADMIN']),
-    trimRequest.all,
-    controller.getRefreshToken,
+  requireAuth,
+  controller.roleAuthorization(['USER', 'ADMIN', 'SUPERADMIN']),
+  trimRequest.all,
+  controller.getRefreshToken,
 );
 
 router.post(
-    '/login',
-    /* #swagger.tags = ['Authentication']
+  '/login',
+  /* #swagger.tags = ['Authentication']
       #swagger.summary = 'Login user'
       #swagger.requestBody = {
           required: true,
@@ -277,7 +277,7 @@ router.post(
           content: {
               'application/json': {
                   schema: {
-                      $ref: '#/components/schemas/AuthResponse'
+                      $ref: '#/components/schemas/UserauthResponseSchema'
                   }
               }
           }
@@ -292,14 +292,14 @@ router.post(
               }
           }
       } */
-    trimRequest.all,
-    validate(z.object({ body: loginSchema })),
-    controller.login,
+  trimRequest.all,
+  validate(z.object({ body: loginSchema })),
+  controller.login,
 );
 
 router.get(
-    '/me',
-    /* #swagger.tags = ['Authentication']
+  '/me',
+  /* #swagger.tags = ['Authentication']
       #swagger.summary = 'Get current user profile'
       #swagger.security = [{ "BearerAuth": [] }]
       #swagger.responses[200] = {
@@ -310,17 +310,17 @@ router.get(
                       type: 'object',
                       properties: {
                           success: { type: 'boolean' },
-                          user: { $ref: '#/components/schemas/User' }
+                          user: { $ref: '#/components/schemas/UseruserSchema' }
                       }
                   }
               }
           }
       }
       } */
-    requireAuth,
-    controller.roleAuthorization(['USER', 'ADMIN', 'SUPERADMIN']),
-    trimRequest.all,
-    controller.me,
+  requireAuth,
+  controller.roleAuthorization(['USER', 'ADMIN', 'SUPERADMIN']),
+  trimRequest.all,
+  controller.me,
 );
 
 export default router;
