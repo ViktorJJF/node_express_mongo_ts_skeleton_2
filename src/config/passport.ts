@@ -31,7 +31,7 @@ const jwtExtractor = (req: Request): string | null => {
  */
 const jwtOptions = {
   jwtFromRequest: jwtExtractor,
-  secretOrKey: process.env.JWT_SECRET as string,
+  secretOrKey: process.env.JWT_SECRET || 'secret',
 };
 
 /**

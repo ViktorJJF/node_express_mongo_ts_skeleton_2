@@ -28,7 +28,7 @@ export const generateToken = (userId: number): string => {
         },
         exp: expiration,
       },
-      process.env.JWT_SECRET || 'default-secret-key',
+      process.env.JWT_SECRET || 'secret',
     ),
   );
 };

@@ -6,10 +6,15 @@ import * as schema from '../schemas/database';
 let db: ReturnType<typeof drizzle>;
 let pool: Pool;
 
-export const initializeDatabase = () => {
-  const connectionString =
+export const getConnectionString = (): string => {
+  return (
     process.env.DATABASE_URL ||
-    'postgresql://postgres:123456@localhost:5432/myapp';
+    'postgresql://postgres:123456@localhost:5432/myapp'
+  );
+};
+
+export const initializeDatabase = () => {
+  const connectionString = getConnectionString();
 
   try {
     pool = new Pool({

@@ -73,11 +73,22 @@ export const generateToken = (user: any): string => {
  */
 export const getUserIdFromToken = async (token: string): Promise<string> => {
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || 'secret',
-    ) as any;
-    return decoded.id;
+    const secret = process.env.JWT_SECRET || 'secret';
+    let decoded: any;
+    try {
+      // Try decrypting wrapper token first (encrypted flow)
+      const inner = decrypt(token);
+      decoded = jwt.verify(inner, secret) as any;
+    } catch (_e) {
+      // Fallback: verify token directly (plain JWT flow)
+      decoded = jwt.verify(token, secret) as any;
+    }
+
+    const id = decoded?.id ?? decoded?.data?._id;
+    if (!id) {
+      throw buildErrObject(401, 'INVALID_TOKEN');
+    }
+    return String(id);
   } catch (error) {
     logger.error('Error decoding token:', error);
     throw buildErrObject(401, 'INVALID_TOKEN');

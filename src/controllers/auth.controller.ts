@@ -20,7 +20,10 @@ export const login = async (
     const user: any = await AuthService.findUser(body.email);
     AuthService.userIsBlocked(user);
     await AuthService.checkLoginAttemptsAndBlockExpires(user);
-    const isPasswordMatch: any = await auth.checkPassword(body.password, user);
+    const isPasswordMatch: any = await auth.checkPasswordWithUser(
+      body.password,
+      user,
+    );
     if (!isPasswordMatch) {
       await AuthService.passwordsDoNotMatch(user);
     } else {
@@ -165,10 +168,8 @@ export const getRefreshToken = async (
 export const roleAuthorization =
   (roles: string[]) => async (req: any, res: Response, next: NextFunction) => {
     try {
-      const data = {
-        id: req.user._id,
-        roles,
-      };
+      const userId = req.user?.id ?? req.user?._id;
+      const data = { id: userId, roles } as { id: number; roles: string[] };
       await AuthService.checkPermissions(data, next);
     } catch (error) {
       next(error);

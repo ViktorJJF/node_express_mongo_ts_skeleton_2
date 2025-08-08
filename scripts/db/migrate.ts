@@ -1,21 +1,17 @@
-#!/usr/bin/env node
-
+#!/usr/bin/env ts-node
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
+import { getConnectionString } from '../../src/config/database';
 
 // Load environment variables
 dotenv.config();
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  'postgresql://postgres:password@localhost:5432/app_db';
-
 async function runMigration() {
   const pool = new Pool({
-    connectionString,
+    connectionString: getConnectionString(),
   });
 
   const db = drizzle(pool);
@@ -24,7 +20,7 @@ async function runMigration() {
     console.log('🔄 Running database migrations...');
 
     await migrate(db, {
-      migrationsFolder: path.join(__dirname, '../drizzle/migrations'),
+      migrationsFolder: path.join(__dirname, '../../drizzle/migrations'),
     });
 
     console.log('✅ Database migrations completed successfully!');
@@ -41,3 +37,5 @@ if (require.main === module) {
 }
 
 export default runMigration;
+
+
