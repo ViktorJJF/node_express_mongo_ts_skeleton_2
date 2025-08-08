@@ -12,12 +12,12 @@ import cors from 'cors';
 import passport from 'passport';
 import routes from './routes/api';
 import i18n from 'i18n';
-import initMongo from './config/mongo';
+import { initializeDatabase } from './config/database';
 import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 // import logger from './config/logger';
 import HealthCheckMiddleware from './middleware/healthCheck';
-import mongoose from 'mongoose';
+import getDatabase from './config/database';
 import errorHandler from './middleware/errorHandler';
 import { notificationManager } from './services/notifications';
 import { isAxiosError } from 'axios';
@@ -91,19 +91,16 @@ app.get('/health', async (req, res) => {
     let dbStatus = 'unknown';
     let dbResponseTime = 0;
 
-    if (mongoose.connection.readyState === 1) {
+    try {
+      const db = getDatabase();
       const startTime = Date.now();
-      try {
-        // Perform a simple database operation to verify connectivity
-        await mongoose.connection.db.admin().ping();
-        dbResponseTime = Date.now() - startTime;
-        dbStatus = 'healthy';
-      } catch (dbError) {
-        dbStatus = 'error';
-        console.error('Database ping failed:', dbError);
-      }
-    } else {
-      dbStatus = 'disconnected';
+      // Perform a simple database operation to verify connectivity
+      await db.execute('SELECT 1');
+      dbResponseTime = Date.now() - startTime;
+      dbStatus = 'healthy';
+    } catch (dbError) {
+      dbStatus = 'error';
+      console.error('Database ping failed:', dbError);
     }
 
     // Enhanced health response
@@ -117,10 +114,8 @@ app.get('/health', async (req, res) => {
       environment: process.env.NODE_ENV || 'development',
       database: {
         status: dbStatus,
-        connectionState: mongoose.connection.readyState,
+        type: 'postgresql',
         responseTime: dbResponseTime,
-        host: mongoose.connection.host || 'unknown',
-        name: mongoose.connection.name || 'unknown',
       },
       application: {
         version: process.env.npm_package_version || '1.0.0',
@@ -159,8 +154,8 @@ app.listen(app.get('port'), () => {
   console.info('─'.repeat(50));
 });
 
-// Init MongoDB
-initMongo();
+// Init PostgreSQL
+initializeDatabase();
 
 process.on('unhandledRejection', (reason: any) => {
   console.error('Unhandled Rejection at:', reason);

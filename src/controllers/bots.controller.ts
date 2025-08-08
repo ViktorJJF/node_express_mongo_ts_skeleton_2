@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import prisma from '../lib/prisma';
+import { bots } from '../schemas/database';
 import {
   createItem,
   deleteItem,
@@ -38,7 +38,10 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const paginatedResponse = await listItemsPaginated<IBot>(req, prisma.bot);
+      const paginatedResponse = await listItemsPaginated<typeof bots, IBot>(
+        req,
+        bots,
+      );
       res.status(200).json(paginatedResponse);
     } catch (error) {
       next(error);
@@ -51,7 +54,8 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await getItem<IBot>(req.params.id, prisma.bot);
+      const id = parseInt(req.params.id, 10);
+      const item = await getItem<typeof bots, IBot>(id, bots);
       res.status(200).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -65,9 +69,9 @@ class Controller {
   ): Promise<void> => {
     try {
       const bot = req.body;
-      const doesItemExist = await itemExists(bot, prisma.bot as any, UNIQUE_FIELDS);
+      const doesItemExist = await itemExists(bot, bots, UNIQUE_FIELDS);
       if (!doesItemExist) {
-        const item = await createItem<IBot>(bot, prisma.bot as any);
+        const item = await createItem<typeof bots, IBot>(bot, bots);
         res.status(200).json({ ok: true, payload: item });
       }
     } catch (error) {
@@ -84,12 +88,12 @@ class Controller {
       const { id } = req.params;
       const doesItemExist = await itemExistsExcludingItself(
         id,
+        bots,
         req.body,
-        prisma.bot as any,
         UNIQUE_FIELDS,
       );
       if (!doesItemExist) {
-        const item = await updateItem<IBot>(id, prisma.bot as any, req.body);
+        const item = await updateItem<typeof bots, IBot>(id, bots, req.body);
         res.status(200).json({ ok: true, payload: item });
       }
     } catch (error) {
@@ -103,8 +107,8 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const { id } = req.params;
-      const deletedItem = await deleteItem<IBot>(id, prisma.bot as any);
+      const id = parseInt(req.params.id, 10);
+      const deletedItem = await deleteItem<typeof bots, IBot>(id, bots);
       res.status(200).json({ ok: true, payload: deletedItem });
     } catch (error) {
       next(error);
@@ -131,11 +135,14 @@ class Controller {
       }
 
       // Check if any bots with these names already exist
-      for (const bot of bots) {
-        await itemExists(bot, prisma.bot as any, UNIQUE_FIELDS);
+      for (const bot of validatedData.bots) {
+        await itemExists(bot, bots, UNIQUE_FIELDS);
       }
 
-      const createdItems = await createItems<IBot>(bots, prisma.bot as any);
+      const createdItems = await createItems<typeof bots, IBot>(
+        validatedData.bots,
+        bots,
+      );
       res.status(200).json({
         ok: true,
         payload: {
@@ -161,14 +168,18 @@ class Controller {
         if (update.data.name) {
           await itemExistsExcludingItself(
             update.id,
+            bots,
             update.data,
-            prisma.bot as any,
             UNIQUE_FIELDS,
           );
         }
       }
 
-      const result = await updateItems<IBot>(updates, prisma.bot as any);
+      const updatesData = validatedData.updates.map((update) => ({
+        id: parseInt(update.id, 10),
+        data: update.data,
+      }));
+      const result = await updateItems<typeof bots, IBot>(updatesData, bots);
       res.status(200).json({ ok: true, payload: result });
     } catch (error) {
       next(error);
@@ -181,8 +192,11 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const { ids } = req.body;
-      const result = await deleteItems<IBot>(ids, prisma.bot as any);
+      const validatedData = req.body as IBulkDeleteBots;
+      const result = await deleteItems<typeof bots, IBot>(
+        validatedData.ids.map((id) => parseInt(id, 10)),
+        bots,
+      );
       res.status(200).json({ ok: true, payload: result });
     } catch (error) {
       next(error);

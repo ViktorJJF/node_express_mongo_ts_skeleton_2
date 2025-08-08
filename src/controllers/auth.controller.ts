@@ -144,8 +144,8 @@ export const getRefreshToken = async (
     const tokenEncrypted = (req.headers.authorization || '')
       .replace('Bearer ', '')
       .trim();
-    let userId: any = await auth.getUserIdFromToken(tokenEncrypted);
-    userId = await utils.isIDGood(userId);
+    const userIdString = await auth.getUserIdFromToken(tokenEncrypted);
+    const userId = await utils.isIDGood(userIdString);
     const user = await AuthService.findUserById(userId);
     const token: any = await AuthService.saveUserAccessAndReturnToken(
       req,
@@ -185,8 +185,9 @@ export const me = async (req: any, res: Response, next: NextFunction) => {
     const tokenEncrypted = (req.headers.authorization || '')
       .replace('Bearer ', '')
       .trim();
-    const id = await auth.getUserIdFromToken(tokenEncrypted);
-    const user = await AuthService.findUserById(id);
+    const userIdString = await auth.getUserIdFromToken(tokenEncrypted);
+    const userId = await utils.isIDGood(userIdString);
+    const user = await AuthService.findUserById(userId);
     res.status(200).json(user);
   } catch (error) {
     next(error);

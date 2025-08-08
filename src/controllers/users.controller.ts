@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import prisma from '../lib/prisma';
+import { users } from '../schemas/database';
 import {
   createItem,
   deleteItem,
@@ -18,7 +18,10 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const paginatedResponse = await listItemsPaginated<IUser>(req, prisma.user as any);
+      const paginatedResponse = await listItemsPaginated<typeof users, IUser>(
+        req,
+        users,
+      );
       res.status(200).json(paginatedResponse);
     } catch (error) {
       next(error);
@@ -31,7 +34,8 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await getItem<IUser>(req.params.id, prisma.user as any);
+      const id = parseInt(req.params.id, 10);
+      const item = await getItem<typeof users, IUser>(id, users);
       res.status(200).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -44,7 +48,7 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await createItem<IUser>(req.body as any, prisma.user as any);
+      const item = await createItem<typeof users, IUser>(req.body, users);
       res.status(201).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -57,7 +61,8 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await updateItem<IUser>(req.params.id, prisma.user as any, req.body as any);
+      const id = parseInt(req.params.id, 10);
+      const item = await updateItem<typeof users, IUser>(id, users, req.body);
       res.status(200).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -70,7 +75,8 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      await deleteItem(req.params.id, prisma.user as any);
+      const id = parseInt(req.params.id, 10);
+      await deleteItem<typeof users, IUser>(id, users);
       res.status(204).send();
     } catch (error) {
       next(error);

@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import requestIp from 'request-ip';
 import { validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
@@ -11,8 +10,8 @@ const convertToDate = (date: string | number | Date): Date => {
   return formatedDate;
 };
 
-const selectRandomId = (collection: Array<{ _id: string }>): string =>
-  collection[Random(0, collection.length - 1)]._id;
+const selectRandomId = (collection: Array<{ id: number }>): number =>
+  collection[Random(0, collection.length - 1)].id;
 
 const Random = (min: number, max: number): number => {
   const newMin = Math.ceil(min);
@@ -120,10 +119,10 @@ const buildSuccObject = (message: string): { msg: string } => ({
   msg: message,
 });
 
-const isIDGood = async (id: string): Promise<string> => {
-  const goodID = mongoose.Types.ObjectId.isValid(id);
-  if (goodID) {
-    return id;
+const isIDGood = async (id: string): Promise<number> => {
+  const numId = parseInt(id, 10);
+  if (!isNaN(numId) && numId > 0) {
+    return numId;
   }
   throw buildErrObject(422, 'ID_MALFORMED');
 };

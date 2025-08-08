@@ -1,78 +1,142 @@
-import crypto from 'crypto';
-import { buildErrObject } from '../helpers/utils';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { Request } from 'express';
+import logger from '../config/logger';
+import { buildErrObject } from './utils';
 
-const secret: string = process.env.JWT_SECRET!;
-const algorithm: string = 'aes-192-cbc';
-// Key length is dependent on the algorithm. In this case for aes192, it is
-// 24 bytes (192 bits).
-const key: Buffer = crypto.scryptSync(secret, 'salt', 24);
-const iv: Buffer = Buffer.alloc(16, 0); // Initialization crypto vector
+const SALT_FACTOR = 5;
 
-type User = { comparePassword?: (password: string) => Promise<boolean>; password?: string };
-
-export const checkPassword = async (
-  password: string,
-  user: User,
-): Promise<boolean> => {
+/**
+ * Hash a password using bcrypt
+ * @param password - Plain text password
+ * @returns Hashed password
+ */
+export const hashPassword = async (password: string): Promise<string> => {
   try {
-    if (typeof user.comparePassword === 'function') {
-      return await user.comparePassword(password);
-    }
-    if (user.password) {
-      return await bcrypt.compare(password, user.password);
-    }
-    throw new Error('No password available to compare');
-  } catch (error: any) {
-    throw buildErrObject(422, error.message);
-  }
-};
-
-export const encrypt = (text: string): string => {
-  const cipher = crypto.createCipheriv(algorithm, key, iv);
-
-  let encrypted: string = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-
-  return encrypted;
-};
-
-export const decrypt = (text: string): string => {
-  const decipher = crypto.createDecipheriv(algorithm, key, iv);
-
-  try {
-    let decrypted: string = decipher.update(text, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    return decrypted;
-  } catch {
-    return '';
+    const salt = await bcrypt.genSalt(SALT_FACTOR);
+    return await bcrypt.hash(password, salt);
+  } catch (error) {
+    logger.error('Error hashing password:', error);
+    throw buildErrObject(500, 'PASSWORD_HASHING_FAILED');
   }
 };
 
 /**
+ * Compare a password with its hash
+ * @param password - Plain text password
+ * @param hashedPassword - Hashed password from database
+ * @returns Boolean indicating if passwords match
+ */
+export const checkPassword = async (
+  password: string,
+  hashedPassword: string,
+): Promise<boolean> => {
+  try {
+    return await bcrypt.compare(password, hashedPassword);
+  } catch (error) {
+    logger.error('Error comparing passwords:', error);
+    throw buildErrObject(500, 'PASSWORD_COMPARISON_FAILED');
+  }
+};
+
+/**
+ * Compare password with user object (for compatibility)
+ * @param password - Plain text password
+ * @param user - User object with password field
+ * @returns Boolean indicating if passwords match
+ */
+export const checkPasswordWithUser = async (
+  password: string,
+  user: any,
+): Promise<boolean> => {
+  return await checkPassword(password, user.password);
+};
+
+/**
+ * Generates a token
+ * @param user - User object
+ */
+export const generateToken = (user: any): string => {
+  const payload = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  };
+  return jwt.sign(payload, process.env.JWT_SECRET || 'secret', {
+    expiresIn: parseInt(process.env.JWT_EXPIRATION_IN_MINUTES || '60') * 60,
+  });
+};
+
+/**
  * Gets user id from token
- * @param {string} token - Encrypted and encoded token
+ * @param token - JWT token
  */
 export const getUserIdFromToken = async (token: string): Promise<string> => {
   try {
-    // Decrypts, verifies and decode token
-    const decoded = (await new Promise((resolve, reject) => {
-      jwt.verify(
-        decrypt(token),
-        process.env.JWT_SECRET || 'default-secret-key',
-        (err: any, decoded: any) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(decoded);
-          }
-        },
-      );
-    })) as any;
-
-    return decoded.data._id;
-  } catch (err) {
-    throw buildErrObject(409, 'BAD_TOKEN');
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'secret',
+    ) as any;
+    return decoded.id;
+  } catch (error) {
+    logger.error('Error decoding token:', error);
+    throw buildErrObject(401, 'INVALID_TOKEN');
   }
 };
+
+/**
+ * Encrypts text using JWT (for backward compatibility)
+ * @param text - Text to encrypt
+ */
+export const encrypt = (text: string): string => {
+  return jwt.sign({ text }, process.env.JWT_SECRET || 'secret');
+};
+
+/**
+ * Decrypts text using JWT (for backward compatibility)
+ * @param encryptedText - Encrypted text
+ */
+export const decrypt = (encryptedText: string): string => {
+  try {
+    const decoded = jwt.verify(
+      encryptedText,
+      process.env.JWT_SECRET || 'secret',
+    ) as any;
+    return decoded.text;
+  } catch (error) {
+    logger.error('Error decrypting text:', error);
+    throw buildErrObject(400, 'DECRYPTION_FAILED');
+  }
+};
+
+/**
+ * Gets request IP
+ * @param req - Express request object
+ */
+export const getIP = (req: Request): string => {
+  return req.clientIp || req.connection.remoteAddress || req.ip || '';
+};
+
+/**
+ * Gets browser information from user agent
+ * @param req - Express request object
+ */
+export const getBrowserInfo = (req: Request): string => {
+  return req.headers['user-agent'] || '';
+};
+
+/**
+ * Gets country information (placeholder - implement with a geo-IP service)
+ * @param req - Express request object
+ */
+export const getCountry = (req: Request): string => {
+  // Placeholder - implement with a geo-IP service like maxmind or similar
+  return (req.headers['cf-ipcountry'] as string) || 'Unknown';
+};
+
+// Re-export checkPassword as the default export for backward compatibility
+export { checkPassword as default };
+
+// Keep the old function names for backward compatibility
+export const checkPasswordAgainstHash = checkPassword;
+export { checkPasswordWithUser as checkPassword };

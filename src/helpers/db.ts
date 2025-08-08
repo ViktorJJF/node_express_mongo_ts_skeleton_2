@@ -1,35 +1,27 @@
 import { Request } from 'express';
+import { SQL, eq, or, sql, count, asc, desc, and, ilike } from 'drizzle-orm';
+import { PgTable, PgColumn } from 'drizzle-orm/pg-core';
 import { PaginatedResponse } from '../types/shared/response';
 import { buildErrObject } from './utils';
 import logger from '../config/logger';
-import prisma from '../lib/prisma';
-
-// Minimal delegate interface to support generic helpers across Prisma models
-type PrismaDelegate = any;
-
-// Ensure API maintains `_id` as in previous Mongo contract
-function mapId(obj: any): any {
-  if (!obj) return obj;
-  if ('_id' in obj) return obj;
-  const { id, ...rest } = obj as any;
-  return { _id: id, ...rest };
-}
-
-function mapArrayId(arr: any[]): any[] {
-  return arr.map((o: any) => mapId(o));
-}
+import getDatabase from '../config/database';
 
 const buildSort = (
   sort: string,
-  order: 'asc' | 'desc' | string,
-): Record<string, 'asc' | 'desc'> => {
-  const normalized = order === 'desc' ? 'desc' : 'asc';
-  return { [sort]: normalized } as Record<string, 'asc' | 'desc'>;
+  order: number | string,
+  table: PgTable,
+): SQL<unknown> | undefined => {
+  // Get column from table
+  const column = (table as any)[sort] as PgColumn;
+  if (!column) {
+    return undefined;
+  }
+
+  return order === 'desc' || order === -1 ? desc(column) : asc(column);
 };
 
-const _cleanPaginationID = (result: any): any => {
-  // No-op for Prisma (ids are fine); ensure shape uses payload
-  return renameKey(result, 'docs', 'payload');
+const cleanPaginationID = (result: any): any => {
+  return renameKey(result, 'data', 'payload');
 };
 
 const renameKey = (
@@ -44,209 +36,478 @@ const renameKey = (
   return clonedObj;
 };
 
-const listInitOptions = async (req: Request): Promise<{
-  order: 'asc' | 'desc';
-  sort: Record<string, 'asc' | 'desc'>;
-  page: number;
-  limit: number;
-}> => {
-  const order = ((req.query.order as string) || 'asc') as 'asc' | 'desc';
+const listInitOptions = async (req: Request): Promise<Record<string, any>> => {
+  const order = (req.query.order || 'asc') as string;
   const sort = (req.query.sort || 'createdAt') as string;
-  const sortBy = buildSort(sort, order);
   const page = parseInt(req.query.page as string, 10) || 1;
-  const limit = parseInt(req.query.limit as string, 10) || 25;
-  return { order, sort: sortBy, page, limit };
+  const limit = parseInt(req.query.limit as string, 10) || 99999;
+  return {
+    order,
+    sort,
+    page,
+    limit,
+  };
 };
 
 async function checkQueryString(
   query: Record<string, any>,
-): Promise<Record<string, any>> {
-  const where: Record<string, any> = {};
+  table: PgTable,
+): Promise<SQL<unknown> | undefined> {
+  const conditions: SQL<unknown>[] = [];
+
+  for (const key in query) {
+    if (Object.prototype.hasOwnProperty.call(query, key)) {
+      const element = query[key];
+      if (
+        key !== 'filter' &&
+        key !== 'fields' &&
+        key !== 'page' &&
+        key !== 'order' &&
+        key !== 'sort' &&
+        key !== 'limit'
+      ) {
+        const column = (table as any)[key] as PgColumn;
+        if (column) {
+          conditions.push(eq(column, element));
+        }
+      }
+    }
+  }
+
   try {
-    // Carry through additional exact-match filters (non-reserved keys)
-    for (const key in query) {
-      if (!['filter', 'fields', 'page', 'limit', 'order', 'sort', 'select'].includes(key)) {
-        where[key] = query[key];
-      }
-    }
-
     if (query.filter && query.fields) {
-      const arrayFields = String(query.fields).split(',').map((s) => s.trim()).filter(Boolean);
-      if (arrayFields.length > 0) {
-        where.OR = arrayFields.map((field) => ({
-          [field]: { contains: String(query.filter), mode: 'insensitive' },
-        }));
+      const searchConditions: SQL<unknown>[] = [];
+      const fieldsArray = query.fields.split(',');
+
+      fieldsArray.forEach((field: string) => {
+        const column = (table as any)[field.trim()] as PgColumn;
+        if (column) {
+          searchConditions.push(ilike(column, `%${query.filter}%`));
+        }
+      });
+
+      if (searchConditions.length > 0) {
+        conditions.push(or(...searchConditions)!);
       }
     }
 
-    return where;
+    return conditions.length > 0 ? and(...conditions) : undefined;
   } catch (err: any) {
     logger.error(err.message);
     throw buildErrObject(422, 'ERROR_WITH_FILTER');
   }
 }
 
-async function getAllItems<T>(delegate: PrismaDelegate): Promise<T[]> {
-  return delegate.findMany({ orderBy: { name: 'asc' } });
-}
+async function getAllItems<T extends PgTable>(table: T): Promise<any> {
+  try {
+    const db = getDatabase();
+    const nameColumn = (table as any).name as PgColumn;
+    const orderBy = nameColumn ? [asc(nameColumn)] : undefined;
 
-async function getItems<T>(
-  req: Request,
-  delegate: PrismaDelegate,
-  where: Record<string, any>,
-  fields: string,
-): Promise<PaginatedResponse<T>> {
-  const { page, limit, sort } = await listInitOptions(req);
-  const skip = (page - 1) * limit;
-
-  const select = buildSelect(fields);
-  const [totalDocs, docs] = await Promise.all([
-    delegate.count({ where }),
-    delegate.findMany({ where, skip, take: limit, orderBy: sort, select }),
-  ]);
-
-  const totalPages = Math.max(1, Math.ceil(totalDocs / limit));
-  const pagingCounter = skip + 1;
-  const hasPrevPage = page > 1;
-  const hasNextPage = page < totalPages;
-  const prevPage = hasPrevPage ? page - 1 : null;
-  const nextPage = hasNextPage ? page + 1 : null;
-
-  return {
-    ok: true,
-    totalDocs,
-    limit,
-    totalPages,
-    page,
-    pagingCounter,
-    hasPrevPage,
-    hasNextPage,
-    prevPage,
-    nextPage,
-    payload: mapArrayId(docs) as unknown as T[],
-  };
-}
-
-async function getAggregatedItems<T>(
-  _req: Request,
-  _delegate: PrismaDelegate,
-  _aggregated: any[],
-): Promise<PaginatedResponse<T>> {
-  throw buildErrObject(500, 'NOT_IMPLEMENTED_WITH_PRISMA');
-}
-
-async function getItem<T>(id: string, delegate: PrismaDelegate): Promise<T> {
-  const item = await delegate.findUnique({ where: { id } });
-  if (!item) {
-    throw buildErrObject(404, 'NOT_FOUND');
+    const result = await db
+      .select()
+      .from(table)
+      .orderBy(...(orderBy || []));
+    return result;
+  } catch (error) {
+    logger.error('Error getting all items:', error);
+    throw error;
   }
-  return mapId(item) as T;
 }
 
-async function filterItems<T>(
-  where: Record<string, any>,
-  delegate: PrismaDelegate,
-): Promise<{ ok: boolean; payload: T[] }> {
-  const payload = await delegate.findMany({ where });
-  return { ok: true, payload: mapArrayId(payload) as unknown as T[] };
+async function getItems<T extends PgTable, R>(
+  req: Request,
+  table: T,
+  query: Record<string, any>,
+  _fields?: string,
+): Promise<PaginatedResponse<R>> {
+  try {
+    const db = getDatabase();
+    const options = await listInitOptions(req);
+
+    // Build where condition
+    const whereCondition = await checkQueryString(query, table);
+
+    // Build sort
+    const sortColumn = buildSort(options.sort, options.order, table);
+    const orderBy = sortColumn ? [sortColumn] : undefined;
+
+    // Calculate offset
+    const offset = (options.page - 1) * options.limit;
+
+    // Get total count
+    const totalQuery = db.select({ count: count() }).from(table);
+    if (whereCondition) {
+      totalQuery.where(whereCondition);
+    }
+    const [{ count: totalCount }] = await totalQuery;
+
+    // Get paginated results
+    let selectQuery = db.select().from(table);
+    if (whereCondition) {
+      selectQuery = selectQuery.where(whereCondition);
+    }
+    if (orderBy) {
+      selectQuery = selectQuery.orderBy(...orderBy);
+    }
+    selectQuery = selectQuery.limit(options.limit).offset(offset);
+
+    const data = await selectQuery;
+
+    const result = {
+      data,
+      totalDocs: totalCount,
+      limit: options.limit,
+      totalPages: Math.ceil(totalCount / options.limit),
+      page: options.page,
+      hasPrevPage: options.page > 1,
+      hasNextPage: options.page < Math.ceil(totalCount / options.limit),
+      prevPage: options.page > 1 ? options.page - 1 : null,
+      nextPage:
+        options.page < Math.ceil(totalCount / options.limit)
+          ? options.page + 1
+          : null,
+    };
+
+    return cleanPaginationID(result);
+  } catch (error) {
+    logger.error('Error getting items:', error);
+    throw error;
+  }
 }
 
-async function createItem<T>(
+async function getAggregatedItems<T extends PgTable, R>(
+  req: Request,
+  table: T,
+  // aggregated is not directly applicable to Drizzle, but we can simulate with complex queries
+  customQuery?: (db: any, table: T, options: any) => Promise<any>,
+): Promise<PaginatedResponse<R>> {
+  try {
+    const options = await listInitOptions(req);
+
+    if (!customQuery) {
+      // Fallback to regular getItems if no custom query provided
+      return await getItems<T, R>(req, table, {});
+    }
+
+    const result = await customQuery(db, table, options);
+    return cleanPaginationID(result);
+  } catch (error) {
+    logger.error('Error getting aggregated items:', error);
+    throw error;
+  }
+}
+
+async function getItem<T extends PgTable, R>(id: number, table: T): Promise<R> {
+  try {
+    const db = getDatabase();
+    const idColumn = (table as any).id as PgColumn;
+    const result = await db.select().from(table).where(eq(idColumn, id));
+
+    if (!result || result.length === 0) {
+      throw buildErrObject(404, 'NOT_FOUND');
+    }
+
+    return result[0] as R;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'NOT_FOUND') {
+      throw error;
+    }
+    logger.error('Error getting item:', error);
+    throw error;
+  }
+}
+
+async function filterItems<T extends PgTable, R>(
+  fields: Record<string, any>,
+  table: T,
+): Promise<{ ok: boolean; payload: R[] }> {
+  try {
+    const conditions: SQL<unknown>[] = [];
+
+    for (const [key, value] of Object.entries(fields)) {
+      const column = (table as any)[key] as PgColumn;
+      if (column) {
+        conditions.push(eq(column, value));
+      }
+    }
+
+    let query = db.select().from(table);
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    const payload = await query;
+    return { ok: true, payload: payload as R[] };
+  } catch (error) {
+    logger.error('Error filtering items:', error);
+    throw error;
+  }
+}
+
+async function createItem<T extends PgTable, R>(
   item: Record<string, any>,
-  delegate: PrismaDelegate,
-): Promise<T> {
-  const created = await delegate.create({ data: item });
-  return mapId(created) as T;
-}
-
-async function updateItem<T>(
-  id: string,
-  delegate: PrismaDelegate,
-  data: Record<string, any>,
-): Promise<T> {
+  table: T,
+): Promise<R> {
   try {
-    const updated = await delegate.update({ where: { id }, data });
-    return mapId(updated) as T;
-  } catch {
-    throw buildErrObject(404, 'NOT_FOUND');
+    const db = getDatabase();
+    const result = await db.insert(table).values(item).returning();
+    return result[0] as R;
+  } catch (error) {
+    logger.error('Error creating item:', error);
+    throw error;
   }
 }
 
-async function deleteItem<T>(id: string, delegate: PrismaDelegate): Promise<T> {
+async function updateItem<T extends PgTable, R>(
+  id: number,
+  table: T,
+  body: Record<string, any>,
+): Promise<R> {
   try {
-    const deleted = await delegate.delete({ where: { id } });
-    return mapId(deleted) as T;
-  } catch {
-    throw buildErrObject(404, 'NOT_FOUND');
+    const db = getDatabase();
+    const idColumn = (table as any).id as PgColumn;
+
+    // Add updatedAt timestamp
+    const updatedBody = {
+      ...body,
+      updatedAt: new Date(),
+    };
+
+    const result = await db
+      .update(table)
+      .set(updatedBody)
+      .where(eq(idColumn, id))
+      .returning();
+
+    if (!result || result.length === 0) {
+      throw buildErrObject(404, 'NOT_FOUND');
+    }
+
+    return result[0] as R;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'NOT_FOUND') {
+      throw error;
+    }
+    logger.error('Error updating item:', error);
+    throw error;
   }
 }
 
-async function createItems<T>(
+async function deleteItem<T extends PgTable, R>(
+  id: number,
+  table: T,
+): Promise<R> {
+  try {
+    const db = getDatabase();
+    const idColumn = (table as any).id as PgColumn;
+    const result = await db.delete(table).where(eq(idColumn, id)).returning();
+
+    if (!result || result.length === 0) {
+      throw buildErrObject(404, 'NOT_FOUND');
+    }
+
+    return result[0] as R;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'NOT_FOUND') {
+      throw error;
+    }
+    logger.error('Error deleting item:', error);
+    throw error;
+  }
+}
+
+async function createItems<T extends PgTable, R>(
   items: Record<string, any>[],
-  delegate: PrismaDelegate,
-): Promise<T[]> {
-  const operations = items.map((data) => (delegate as any).create({ data }));
-  const createdItems = await prisma.$transaction(operations as any);
-  return mapArrayId(createdItems) as unknown as T[];
+  table: T,
+): Promise<R[]> {
+  try {
+    const db = getDatabase();
+    const result = await db.insert(table).values(items).returning();
+    return result as R[];
+  } catch (error) {
+    logger.error('Error creating items:', error);
+    throw error;
+  }
 }
 
-async function updateItems<T>(
-  updates: { id: string; data: Record<string, any> }[],
-  delegate: PrismaDelegate,
-): Promise<{ modified: number; items: T[] }> {
-  const operations = updates.map(({ id, data }) =>
-    (delegate as any).update({ where: { id }, data }),
-  );
-  const items = (await prisma.$transaction(operations as any)) as T[];
-  return { modified: items.length, items: mapArrayId(items) as unknown as T[] };
+async function updateItems<T extends PgTable, R>(
+  updates: { id: number; data: Record<string, any> }[],
+  table: T,
+): Promise<{ modified: number; items: R[] }> {
+  try {
+    const db = getDatabase();
+    const idColumn = (table as any).id as PgColumn;
+    const updatedItems: R[] = [];
+    let modifiedCount = 0;
+
+    for (const update of updates) {
+      try {
+        const updatedBody = {
+          ...update.data,
+          updatedAt: new Date(),
+        };
+
+        const result = await db
+          .update(table)
+          .set(updatedBody)
+          .where(eq(idColumn, update.id))
+          .returning();
+
+        if (result && result.length > 0) {
+          updatedItems.push(result[0] as R);
+          modifiedCount++;
+        }
+      } catch (error) {
+        logger.error(`Error updating item ${update.id}:`, error);
+      }
+    }
+
+    return {
+      modified: modifiedCount,
+      items: updatedItems,
+    };
+  } catch (error) {
+    logger.error('Error updating items:', error);
+    throw error;
+  }
 }
 
-async function deleteItems<T>(
-  ids: string[],
-  delegate: PrismaDelegate,
-): Promise<{ deleted: number; items: T[] }> {
-  const itemsToDelete = await delegate.findMany({ where: { id: { in: ids } } });
-  const result = await delegate.deleteMany({ where: { id: { in: ids } } });
-  return { deleted: result.count, items: mapArrayId(itemsToDelete) as unknown as T[] };
+async function deleteItems<T extends PgTable, R>(
+  ids: number[],
+  table: T,
+): Promise<{ deleted: number; items: R[] }> {
+  try {
+    const db = getDatabase();
+    const idColumn = (table as any).id as PgColumn;
+    const deletedItems: R[] = [];
+
+    for (const id of ids) {
+      try {
+        const result = await db
+          .delete(table)
+          .where(eq(idColumn, id))
+          .returning();
+        if (result && result.length > 0) {
+          deletedItems.push(result[0] as R);
+        }
+      } catch (error) {
+        logger.error(`Error deleting item ${id}:`, error);
+      }
+    }
+
+    return {
+      deleted: deletedItems.length,
+      items: deletedItems,
+    };
+  } catch (error) {
+    logger.error('Error deleting items:', error);
+    throw error;
+  }
 }
 
-export const listItemsPaginated = async <T>(
+export const listItemsPaginated = async <T extends PgTable, R>(
   req: Request,
-  delegate: PrismaDelegate,
-): Promise<PaginatedResponse<T>> => {
-  const where = await checkQueryString(req.query);
-  const fields = (req.query.fields as string) || '';
-  const paginatedResponse = await getItems<T>(req, delegate, where, fields);
+  table: T,
+): Promise<PaginatedResponse<R>> => {
+  const query = { ...req.query };
+  delete query.page;
+  delete query.limit;
+  delete query.sort;
+  delete query.order;
+
+  const fields = req.query.fields as string;
+  const paginatedResponse = await getItems<T, R>(req, table, query, fields);
   return paginatedResponse;
 };
 
-export const itemExists = async <T>(
+export const itemExists = async <T extends PgTable>(
   body: any,
-  delegate: PrismaDelegate,
+  table: T,
   uniqueFields: string[],
 ): Promise<boolean> => {
-  if (uniqueFields.length === 0) return false;
-  const OR = uniqueFields.map((field) => ({ [field]: body[field] }));
-  const item = await delegate.findFirst({ where: { OR } });
-  if (item) {
-    throw buildErrObject(422, 'Este registro ya existe');
+  try {
+    if (uniqueFields.length === 0) {
+      return false;
+    }
+
+    const db = getDatabase();
+    const conditions: SQL<unknown>[] = [];
+    for (const field of uniqueFields) {
+      const column = (table as any)[field] as PgColumn;
+      if (column && body[field] !== undefined) {
+        conditions.push(eq(column, body[field]));
+      }
+    }
+
+    if (conditions.length === 0) {
+      return false;
+    }
+
+    const result = await db
+      .select()
+      .from(table)
+      .where(and(...conditions))
+      .limit(1);
+
+    if (result && result.length > 0) {
+      throw buildErrObject(422, 'Este registro ya existe');
+    }
+
+    return false;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Este registro ya existe') {
+      throw error;
+    }
+    logger.error('Error checking if item exists:', error);
+    throw error;
   }
-  return false;
 };
 
-export const itemExistsExcludingItself = async <T>(
-  id: string,
+export const itemExistsExcludingItself = async <T extends PgTable>(
+  id: number,
   body: any,
-  delegate: PrismaDelegate,
+  table: T,
   uniqueFields: string[],
 ): Promise<boolean> => {
-  if (uniqueFields.length === 0) return false;
-  const OR = uniqueFields.map((field) => ({ [field]: body[field] }));
-  const item = await delegate.findFirst({ where: { OR, NOT: { id } } });
-  if (item) {
-    throw buildErrObject(422, 'Este registro ya existe');
+  try {
+    if (uniqueFields.length === 0) {
+      return false;
+    }
+
+    const db = getDatabase();
+    const conditions: SQL<unknown>[] = [];
+    const idColumn = (table as any).id as PgColumn;
+
+    // Exclude current item
+    conditions.push(sql`${idColumn} != ${id}`);
+
+    // Add unique field conditions
+    for (const field of uniqueFields) {
+      const column = (table as any)[field] as PgColumn;
+      if (column && body[field] !== undefined) {
+        conditions.push(eq(column, body[field]));
+      }
+    }
+
+    const result = await db
+      .select()
+      .from(table)
+      .where(and(...conditions))
+      .limit(1);
+
+    if (result && result.length > 0) {
+      throw buildErrObject(422, 'Este registro ya existe');
+    }
+
+    return false;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Este registro ya existe') {
+      throw error;
+    }
+    logger.error('Error checking if item exists excluding itself:', error);
+    throw error;
   }
-  return false;
 };
 
 export {
@@ -265,17 +526,3 @@ export {
   updateItems,
   deleteItems,
 };
-
-// Helpers
-function buildSelect(fields: string | undefined): Record<string, boolean> | undefined {
-  if (!fields) return undefined;
-  const list = String(fields)
-    .split(',')
-    .map((f) => f.trim())
-    .filter(Boolean);
-  if (list.length === 0) return undefined;
-  return list.reduce<Record<string, boolean>>((acc, key) => {
-    acc[key] = true;
-    return acc;
-  }, {});
-}

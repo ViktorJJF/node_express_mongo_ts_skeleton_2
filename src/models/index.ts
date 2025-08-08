@@ -1,25 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+// Models are no longer needed - use database schemas directly with db.ts helpers
+// This file is kept for compatibility but exports nothing
 
-const modelsPath = `${__dirname}/`;
-
-async function loadModels() {
-  /*
-   * Load models dynamically
-   */
-
-  // Read all files in the directory
-  const files = fs.readdirSync(modelsPath);
-  for (const file of files) {
-    // Get the name of the file without its extension
-    const modelFile = path.basename(file, path.extname(file));
-
-    // Prevents loading of this file
-    if (modelFile !== 'index') {
-      // Dynamically import the model
-      await import(`./${modelFile}`);
-    }
-  }
-}
-
-export default loadModels;
+export default () => {
+  console.log(
+    '✅ Database schemas loaded (models are now handled by schemas + db.ts helpers)',
+  );
+};

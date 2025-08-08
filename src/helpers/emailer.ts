@@ -1,7 +1,9 @@
 import nodemailer from 'nodemailer';
-// @ts-ignore
+// @ts-expect-error
 import mg from 'nodemailer-mailgun-transport';
-import User from '../models/Users';
+import { eq, and, ne } from 'drizzle-orm';
+import getDatabase from '../config/database';
+import { users } from '../schemas/database';
 import { buildErrObject } from './utils';
 import logger from '../config/logger';
 
@@ -43,14 +45,16 @@ const sendEmail = async (data: EmailData): Promise<boolean> => {
 };
 
 export const emailExistsExcludingMyself = async (
-  id: string,
+  id: number,
   email: string,
 ): Promise<boolean> => {
-  const item = await User.findOne({
-    email,
-    _id: { $ne: id },
-  });
-  if (item) {
+  const database = getDatabase();
+  const result = await database
+    .select()
+    .from(users)
+    .where(and(eq(users.email, email), ne(users.id, id)));
+
+  if (result && result.length > 0) {
     throw buildErrObject(422, 'EMAIL_ALREADY_EXISTS');
   }
   return false;
@@ -79,8 +83,13 @@ export const prepareToSendEmail = async (
 };
 
 export const emailExists = async (email: string): Promise<boolean> => {
-  const item = await User.findOne({ email });
-  if (item) {
+  const database = getDatabase();
+  const result = await database
+    .select()
+    .from(users)
+    .where(eq(users.email, email));
+
+  if (result && result.length > 0) {
     throw buildErrObject(422, 'EMAIL_ALREADY_EXISTS');
   }
   return false;

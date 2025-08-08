@@ -11,8 +11,13 @@
     "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --pretty --transpile-only -r tsconfig-paths/register ./src/index.ts",
     "tsc": "npx tsc",
     "postinstall": "pnpm run tsc",
-    "fresh": "pnpm run clean && pnpm run seed",
+    "fresh": "pnpm run clean && pnpm run db:migrate && pnpm run seed",
     "clean": "node clean.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:drop": "drizzle-kit drop",
+    "db:studio": "drizzle-kit studio",
     "prettier": "prettier --check \"**/*.{js,json,ts,md}\"",
     "prettier:fix": "prettier --write \"**/*.{js,json,ts,md}\"",
     "swagger": "pnpm ts-node ./swagger.ts",
@@ -24,11 +29,7 @@
     "coverage:merge-report": "nyc report --reporter=lcov --reporter=text --reporter=json --temp-dir=./coverage/merged --report-dir=./coverage/merged",
     "health": "node scripts/test-health-checks.js",
     "health:check": "curl -s http://localhost:3000/api/health | jq",
-    "health:ready": "curl -s http://localhost:3000/api/health/ready | jq",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:deploy": "prisma migrate deploy",
-    "prisma:studio": "prisma studio"
+    "health:ready": "curl -s http://localhost:3000/api/health/ready | jq"
   },
   "nyc": {
     "reporter": [
@@ -63,6 +64,7 @@
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv-safe": "^9.1.0",
+    "drizzle-orm": "^0.44.4",
     "ejs": "^3.1.10",
     "expeditious-engine-redis": "^0.1.2",
     "express": "^5.1.0",
@@ -82,14 +84,14 @@
     "nodemailer-mailgun-transport": "^2.1.5",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
+    "pg": "^8.16.3",
     "request-ip": "^3.3.0",
     "swagger-ui-express": "^5.0.1",
     "trim-request": "^1.0.6",
     "uuid": "^11.1.0",
     "validator": "^13.15.15",
     "winston": "^3.17.0",
-    "zod": "^4.0.13",
-    "@prisma/client": "^5.16.1"
+    "zod": "^4.0.13"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
@@ -107,6 +109,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
+    "@types/pg": "^8.15.5",
     "@types/request-ip": "^0.0.41",
     "@types/swagger-ui-express": "^4.1.8",
     "@types/validator": "^13.15.2",
@@ -116,6 +119,7 @@
     "chai": "^5.2.1",
     "chai-http": "^5.1.2",
     "cross-env": "^10.0.0",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^9.32.0",
     "faker": "^6.6.6",
     "husky": "^9.1.7",
@@ -132,8 +136,7 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.9.2",
-    "prisma": "^5.16.1"
+    "typescript": "^5.9.2"
   },
   "keywords": [
     "javascript",

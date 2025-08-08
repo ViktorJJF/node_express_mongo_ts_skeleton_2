@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import prisma from '../lib/prisma';
+import mongoose from 'mongoose';
 import logger from '../config/logger';
 
 interface HealthMetrics {
@@ -56,23 +56,19 @@ class HealthCheckMiddleware {
   /**
    * Check if application is healthy based on database connection
    */
-  static async isHealthy(): Promise<boolean> {
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      return true;
-    } catch {
-      return false;
-    }
+  static isHealthy(): boolean {
+    return mongoose.connection.readyState === 1;
   }
 
   /**
    * Get basic health status
    */
   static getHealthStatus() {
-    // Lightweight; detailed check is done in /health endpoint
+    const isDbConnected = mongoose.connection.readyState === 1;
+
     return {
-      isHealthy: true,
-      database: 'unknown',
+      isHealthy: isDbConnected,
+      database: isDbConnected ? 'connected' : 'disconnected',
       timestamp: new Date().toISOString(),
     };
   }

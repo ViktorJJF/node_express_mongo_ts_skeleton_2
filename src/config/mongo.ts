@@ -1,4 +1,10 @@
-// Prisma is used instead of Mongo. Keep file for compatibility with existing imports.
+import logger from './logger';
+
+// MongoDB plugins no longer needed with PostgreSQL + Drizzle
+
 export default () => {
-  // No-op. Prisma connection is lazy via client.
+  // MongoDB connection no longer needed - using PostgreSQL with Drizzle ORM
+  logger.info(
+    '📦 MongoDB config file kept for compatibility - now using PostgreSQL',
+  );
 };
