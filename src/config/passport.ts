@@ -1,8 +1,8 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy } from 'passport-jwt';
-import User from '../models/Users';
 import * as auth from '../helpers/auth';
 import { Request } from 'express';
+import prisma from '../lib/prisma';
 
 /**
  * Extracts token from: header, body or query
@@ -38,10 +38,10 @@ const jwtOptions = {
  */
 const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
   try {
-    const user = await User.findById(payload.data._id);
-    return !user ? done(null, false) : done(null, user);
+    const user = await prisma.user.findUnique({ where: { id: payload.data._id } });
+    return !user ? done(null, false) : done(null, user as any);
   } catch (err) {
-    return done(err, false);
+    return done(err as Error, false);
   }
 });
 

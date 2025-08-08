@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import model from '../models/bots';
+import prisma from '../lib/prisma';
 import {
   createItem,
   deleteItem,
@@ -38,7 +38,7 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const paginatedResponse = await listItemsPaginated<IBot>(req, model);
+      const paginatedResponse = await listItemsPaginated<IBot>(req, prisma.bot);
       res.status(200).json(paginatedResponse);
     } catch (error) {
       next(error);
@@ -51,7 +51,7 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await getItem<IBot>(req.params.id, model);
+      const item = await getItem<IBot>(req.params.id, prisma.bot);
       res.status(200).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -65,9 +65,9 @@ class Controller {
   ): Promise<void> => {
     try {
       const bot = req.body;
-      const doesItemExist = await itemExists(bot, model, UNIQUE_FIELDS);
+      const doesItemExist = await itemExists(bot, prisma.bot as any, UNIQUE_FIELDS);
       if (!doesItemExist) {
-        const item = await createItem<IBot>(bot, model);
+        const item = await createItem<IBot>(bot, prisma.bot as any);
         res.status(200).json({ ok: true, payload: item });
       }
     } catch (error) {
@@ -84,12 +84,12 @@ class Controller {
       const { id } = req.params;
       const doesItemExist = await itemExistsExcludingItself(
         id,
-        model,
         req.body,
+        prisma.bot as any,
         UNIQUE_FIELDS,
       );
       if (!doesItemExist) {
-        const item = await updateItem<IBot>(id, model, req.body);
+        const item = await updateItem<IBot>(id, prisma.bot as any, req.body);
         res.status(200).json({ ok: true, payload: item });
       }
     } catch (error) {
@@ -104,7 +104,7 @@ class Controller {
   ): Promise<void> => {
     try {
       const { id } = req.params;
-      const deletedItem = await deleteItem<IBot>(id, model);
+      const deletedItem = await deleteItem<IBot>(id, prisma.bot as any);
       res.status(200).json({ ok: true, payload: deletedItem });
     } catch (error) {
       next(error);
@@ -132,10 +132,10 @@ class Controller {
 
       // Check if any bots with these names already exist
       for (const bot of bots) {
-        await itemExists(bot, model, UNIQUE_FIELDS);
+        await itemExists(bot, prisma.bot as any, UNIQUE_FIELDS);
       }
 
-      const createdItems = await createItems<IBot>(bots, model);
+      const createdItems = await createItems<IBot>(bots, prisma.bot as any);
       res.status(200).json({
         ok: true,
         payload: {
@@ -161,14 +161,14 @@ class Controller {
         if (update.data.name) {
           await itemExistsExcludingItself(
             update.id,
-            model,
             update.data,
+            prisma.bot as any,
             UNIQUE_FIELDS,
           );
         }
       }
 
-      const result = await updateItems<IBot>(updates, model);
+      const result = await updateItems<IBot>(updates, prisma.bot as any);
       res.status(200).json({ ok: true, payload: result });
     } catch (error) {
       next(error);
@@ -182,7 +182,7 @@ class Controller {
   ): Promise<void> => {
     try {
       const { ids } = req.body;
-      const result = await deleteItems<IBot>(ids, model);
+      const result = await deleteItems<IBot>(ids, prisma.bot as any);
       res.status(200).json({ ok: true, payload: result });
     } catch (error) {
       next(error);

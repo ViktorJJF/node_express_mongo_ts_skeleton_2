@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { buildErrObject } from '../helpers/utils';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 const secret: string = process.env.JWT_SECRET!;
 const algorithm: string = 'aes-192-cbc';
@@ -9,17 +10,20 @@ const algorithm: string = 'aes-192-cbc';
 const key: Buffer = crypto.scryptSync(secret, 'salt', 24);
 const iv: Buffer = Buffer.alloc(16, 0); // Initialization crypto vector
 
-interface User {
-  comparePassword(password: string): Promise<boolean>;
-}
+type User = { comparePassword?: (password: string) => Promise<boolean>; password?: string };
 
 export const checkPassword = async (
   password: string,
   user: User,
 ): Promise<boolean> => {
   try {
-    const isMatch = await user.comparePassword(password);
-    return isMatch;
+    if (typeof user.comparePassword === 'function') {
+      return await user.comparePassword(password);
+    }
+    if (user.password) {
+      return await bcrypt.compare(password, user.password);
+    }
+    throw new Error('No password available to compare');
   } catch (error: any) {
     throw buildErrObject(422, error.message);
   }

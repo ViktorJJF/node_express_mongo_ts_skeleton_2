@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import User from '../models/Users';
+import prisma from '../lib/prisma';
 import {
   createItem,
   deleteItem,
@@ -18,7 +18,7 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const paginatedResponse = await listItemsPaginated<IUser>(req, User);
+      const paginatedResponse = await listItemsPaginated<IUser>(req, prisma.user as any);
       res.status(200).json(paginatedResponse);
     } catch (error) {
       next(error);
@@ -31,7 +31,7 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await getItem<IUser>(req.params.id, User);
+      const item = await getItem<IUser>(req.params.id, prisma.user as any);
       res.status(200).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -44,7 +44,7 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await createItem<IUser>(req.body, User);
+      const item = await createItem<IUser>(req.body as any, prisma.user as any);
       res.status(201).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -57,7 +57,7 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await updateItem<IUser>(req.params.id, User, req.body);
+      const item = await updateItem<IUser>(req.params.id, prisma.user as any, req.body as any);
       res.status(200).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -70,7 +70,7 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      await deleteItem(req.params.id, User);
+      await deleteItem(req.params.id, prisma.user as any);
       res.status(204).send();
     } catch (error) {
       next(error);

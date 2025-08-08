@@ -24,7 +24,11 @@
     "coverage:merge-report": "nyc report --reporter=lcov --reporter=text --reporter=json --temp-dir=./coverage/merged --report-dir=./coverage/merged",
     "health": "node scripts/test-health-checks.js",
     "health:check": "curl -s http://localhost:3000/api/health | jq",
-    "health:ready": "curl -s http://localhost:3000/api/health/ready | jq"
+    "health:ready": "curl -s http://localhost:3000/api/health/ready | jq",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio"
   },
   "nyc": {
     "reporter": [
@@ -84,7 +88,8 @@
     "uuid": "^11.1.0",
     "validator": "^13.15.15",
     "winston": "^3.17.0",
-    "zod": "^4.0.13"
+    "zod": "^4.0.13",
+    "@prisma/client": "^5.16.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
@@ -127,7 +132,8 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "prisma": "^5.16.1"
   },
   "keywords": [
     "javascript",

@@ -1,5 +1,4 @@
 import { z } from '../lib/zod';
-import mongoose from 'mongoose';
 
 export const paginatedResponseSchema = <T extends z.ZodTypeAny>(
   itemSchema: T,
@@ -35,8 +34,7 @@ export const validationErrorSchema = z.object({
   ),
 });
 
-export const idSchema = z.string().refine((val) => {
-  return mongoose.Types.ObjectId.isValid(val);
-}, {
-  message: 'Invalid ObjectId format'
-});
+// UUID or cuid-like id support (Prisma default uses cuid)
+export const idSchema = z
+  .string()
+  .min(1, { message: 'Invalid id format' });
