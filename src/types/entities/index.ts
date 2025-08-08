@@ -1,6 +1,29 @@
 import { Document } from 'mongoose';
 
-export interface IUser extends Document {
+export interface IForgotPassword extends Document {
+  email: string;
+  verification?: string;
+  used: boolean;
+  ipRequest?: string;
+  browserRequest?: string;
+  countryRequest?: string;
+  ipChanged?: string;
+  browserChanged?: string;
+  countryChanged?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IUserAccess extends Document {
+  email: string;
+  ip: string;
+  browser: string;
+  country: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IUserDocument extends Document {
   _id: string;
   id: string;
   first_name: string;
@@ -20,8 +43,4 @@ export interface IUser extends Document {
   createdAt: Date;
   updatedAt: Date;
   comparePassword(passwordAttempt: string): Promise<boolean>;
-}
-
-export interface IUserDocument extends IUser {
-  // Additional methods if any
 }

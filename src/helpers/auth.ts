@@ -10,27 +10,19 @@ const key: Buffer = crypto.scryptSync(secret, 'salt', 24);
 const iv: Buffer = Buffer.alloc(16, 0); // Initialization crypto vector
 
 interface User {
-  comparePassword(
-    password: string,
-    callback: (err: any, isMatch: boolean) => void,
-  ): void;
+  comparePassword(password: string): Promise<boolean>;
 }
 
 export const checkPassword = async (
   password: string,
   user: User,
 ): Promise<boolean> => {
-  return new Promise((resolve, reject) => {
-    user.comparePassword(password, (err, isMatch) => {
-      if (err) {
-        reject(buildErrObject(422, err.message));
-      }
-      if (!isMatch) {
-        resolve(false);
-      }
-      resolve(true);
-    });
-  });
+  try {
+    const isMatch = await user.comparePassword(password);
+    return isMatch;
+  } catch (error: any) {
+    throw buildErrObject(422, error.message);
+  }
 };
 
 export const encrypt = (text: string): string => {
@@ -58,17 +50,25 @@ export const decrypt = (text: string): string => {
  * Gets user id from token
  * @param {string} token - Encrypted and encoded token
  */
-export const getUserIdFromToken = (token: string): Promise<string> =>
-  new Promise((resolve, reject) => {
+export const getUserIdFromToken = async (token: string): Promise<string> => {
+  try {
     // Decrypts, verifies and decode token
-    jwt.verify(
-      decrypt(token),
-      process.env.JWT_SECRET || 'default-secret-key',
-      (err, decoded: any) => {
-        if (err) {
-          reject(buildErrObject(409, 'BAD_TOKEN'));
-        }
-        resolve(decoded.data._id);
-      },
-    );
-  });
+    const decoded = (await new Promise((resolve, reject) => {
+      jwt.verify(
+        decrypt(token),
+        process.env.JWT_SECRET || 'default-secret-key',
+        (err: any, decoded: any) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(decoded);
+          }
+        },
+      );
+    })) as any;
+
+    return decoded.data._id;
+  } catch (err) {
+    throw buildErrObject(409, 'BAD_TOKEN');
+  }
+};

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import { ROLES } from './roles';
-import { IUser } from '../types/entities';
+import { IUser } from '../types/entities/users';
 import { AuthenticatedRequest } from '../types/express';
 
 export const requireAuth = passport.authenticate('jwt', { session: false });

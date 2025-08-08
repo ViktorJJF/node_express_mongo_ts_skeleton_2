@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import validator from 'validator';
-import { IUserAccess } from '../types/models';
+import { IUserAccess } from '../types/entities';
 
 const UserAccessSchema = new Schema(
   {

@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import validator from 'validator';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import logger from '../config/logger';
-import { IUser } from '../types/entities';
+import { IUser } from '../types/entities/users';
 
 const UserSchema = new Schema(
   {
@@ -29,7 +29,7 @@ const UserSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin', 'SUPERADMIN'],
+      enum: ['user', 'admin', 'superadmin', 'developer', 'agent', 'owner'],
       default: 'user',
     },
     verification: {
@@ -85,33 +85,19 @@ const UserSchema = new Schema(
   },
 );
 
-const hash = (user: IUser, salt: string, next: () => void) => {
-  bcrypt.hash(user.password, salt, (error, newHash) => {
-    if (error) {
-      logger.error('🚀 Aqui *** -> error:', error);
-      return next();
-    }
-    user.password = newHash;
-    return next();
-  });
-};
-
-const genSalt = (user: IUser, SALT_FACTOR: number, next: () => void) => {
-  bcrypt.genSalt(SALT_FACTOR, (err, salt) => {
-    if (err) {
-      logger.error('🚀 Aqui *** -> err:', err);
-      return next();
-    }
-    return hash(user, salt, next);
-  });
-};
-
-UserSchema.pre('save', function (next) {
+UserSchema.pre('save', async function () {
   const SALT_FACTOR = 5;
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
-  return genSalt(this as any, SALT_FACTOR, next);
+
+  try {
+    const salt = await bcrypt.genSalt(SALT_FACTOR);
+    this.password = await bcrypt.hash(this.password, salt);
+  } catch (error) {
+    logger.error('Error hashing password:', error);
+    throw error;
+  }
 });
 
 UserSchema.methods.comparePassword = async function (

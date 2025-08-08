@@ -249,7 +249,14 @@ router.get(
           }
       } */
   requireAuth,
-  controller.roleAuthorization(['USER', 'ADMIN', 'SUPERADMIN']),
+  controller.roleAuthorization([
+    'user',
+    'admin',
+    'superadmin',
+    'developer',
+    'agent',
+    'owner',
+  ]),
   trimRequest.all,
   controller.getRefreshToken,
 );
@@ -318,7 +325,14 @@ router.get(
       }
       } */
   requireAuth,
-  controller.roleAuthorization(['USER', 'ADMIN', 'SUPERADMIN']),
+  controller.roleAuthorization([
+    'user',
+    'admin',
+    'superadmin',
+    'developer',
+    'agent',
+    'owner',
+  ]),
   trimRequest.all,
   controller.me,
 );

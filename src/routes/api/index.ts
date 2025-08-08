@@ -17,6 +17,7 @@ versions.forEach((version) => {
     // Mount versioned routes
     if (version === 'v1') {
       // v1 is the default version, mount at root
+      console.log('mounting v1 routes: ', versionPath);
       router.use('/', versionRouter);
     }
 

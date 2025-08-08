@@ -36,13 +36,13 @@ const jwtOptions = {
 /**
  * Login with JWT middleware
  */
-const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
-  User.findById(payload.data._id, (err: any, user: any) => {
-    if (err) {
-      return done(err, false);
-    }
+const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
+  try {
+    const user = await User.findById(payload.data._id);
     return !user ? done(null, false) : done(null, user);
-  });
+  } catch (err) {
+    return done(err, false);
+  }
 });
 
 passport.use(jwtLogin);

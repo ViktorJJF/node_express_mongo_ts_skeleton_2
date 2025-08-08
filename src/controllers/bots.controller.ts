@@ -17,8 +17,15 @@ import {
   IBulkCreateBots,
   IBulkUpdateBots,
   IBulkDeleteBots,
+  IBotListResponse,
+  IListOneBotResponse,
+  ICreateBotResponse,
+  IUpdateBotResponse,
+  IDeleteBotResponse,
+  IBulkCreateBotsResponse,
+  IBulkUpdateBotsResponse,
+  IBulkDeleteBotsResponse,
 } from '../types/entities/bots';
-import { SuccessResponse, PaginatedResponse } from '../types/shared/response';
 import { ListQuery } from '../types/shared/query';
 import { itemExists, itemExistsExcludingItself } from '../helpers/db';
 
@@ -27,7 +34,7 @@ const UNIQUE_FIELDS = ['name'];
 class Controller {
   public list = async (
     req: Request<{}, {}, {}, Partial<ListQuery>>,
-    res: Response<PaginatedResponse<IBot>>,
+    res: Response<IBotListResponse>,
     next: NextFunction,
   ): Promise<void> => {
     try {
@@ -40,7 +47,7 @@ class Controller {
 
   public listOne = async (
     req: Request<{ id: string }>,
-    res: Response<SuccessResponse<IBot>>,
+    res: Response<IListOneBotResponse>,
     next: NextFunction,
   ): Promise<void> => {
     try {
@@ -53,7 +60,7 @@ class Controller {
 
   public create = async (
     req: Request<{}, {}, ICreateBot>,
-    res: Response<SuccessResponse<IBot>>,
+    res: Response<ICreateBotResponse>,
     next: NextFunction,
   ): Promise<void> => {
     try {
@@ -70,7 +77,7 @@ class Controller {
 
   public update = async (
     req: Request<{ id: string }, {}, IUpdateBot>,
-    res: Response<SuccessResponse<IBot>>,
+    res: Response<IUpdateBotResponse>,
     next: NextFunction,
   ): Promise<void> => {
     try {
@@ -92,7 +99,7 @@ class Controller {
 
   public delete = async (
     req: Request<{ id: string }>,
-    res: Response<SuccessResponse<IBot>>,
+    res: Response<IDeleteBotResponse>,
     next: NextFunction,
   ): Promise<void> => {
     try {
@@ -106,7 +113,7 @@ class Controller {
 
   public bulkCreate = async (
     req: Request<{}, {}, IBulkCreateBots>,
-    res: Response<SuccessResponse<{ created: number; items: IBot[] }>>,
+    res: Response<IBulkCreateBotsResponse>,
     next: NextFunction,
   ): Promise<void> => {
     try {
@@ -143,7 +150,7 @@ class Controller {
 
   public bulkUpdate = async (
     req: Request<{}, {}, IBulkUpdateBots>,
-    res: Response<SuccessResponse<{ modified: number; items: IBot[] }>>,
+    res: Response<IBulkUpdateBotsResponse>,
     next: NextFunction,
   ): Promise<void> => {
     try {
@@ -170,7 +177,7 @@ class Controller {
 
   public bulkDelete = async (
     req: Request<{}, {}, IBulkDeleteBots>,
-    res: Response<SuccessResponse<{ deleted: number; items: IBot[] }>>,
+    res: Response<IBulkDeleteBotsResponse>,
     next: NextFunction,
   ): Promise<void> => {
     try {

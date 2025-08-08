@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import validator from 'validator';
-import { IForgotPassword } from '../types/models';
+import { IForgotPassword } from '../types/entities';
 
 const ForgotPasswordSchema = new Schema(
   {
