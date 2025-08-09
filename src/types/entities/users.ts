@@ -1,13 +1,10 @@
-import { Document } from 'mongoose';
-
-export interface IUser extends Document {
-  _id: string;
-  id: string;
-  first_name: string;
-  last_name?: string;
+export interface IUser {
+  id: number;
+  firstName: string;
+  lastName?: string;
   email: string;
   password: string;
-  role: 'admin' | 'superadmin' | 'developer' | 'agent' | 'owner';
+  role: 'user' | 'admin' | 'superadmin' | 'developer' | 'agent' | 'owner';
   verification?: string;
   verified: boolean;
   phone?: string;
@@ -16,12 +13,7 @@ export interface IUser extends Document {
   urlTwitter?: string;
   urlGitHub?: string;
   loginAttempts: number;
-  blockExpires: Date;
+  blockExpires: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  comparePassword(passwordAttempt: string): Promise<boolean>;
-}
-
-export interface IUserDocument extends IUser {
-  // Additional methods if any
 }

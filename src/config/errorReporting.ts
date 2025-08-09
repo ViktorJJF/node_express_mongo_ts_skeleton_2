@@ -127,7 +127,7 @@ function getErrorSeverity(error: any): 'low' | 'medium' | 'high' | 'critical' {
   if (error.status >= 500) return 'critical';
   if (error.status >= 400) return 'medium';
   if (error.name === 'ValidationError') return 'low';
-  if (error.name === 'MongoError' || error.name === 'MongooseError')
+  if (error.name === 'DatabaseError' || error.name === 'QueryFailedError')
     return 'high';
   if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError')
     return 'medium';

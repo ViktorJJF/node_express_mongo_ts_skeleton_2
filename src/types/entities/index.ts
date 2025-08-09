@@ -1,6 +1,5 @@
-import { Document } from 'mongoose';
-
-export interface IForgotPassword extends Document {
+export interface IForgotPassword {
+  id: number;
   email: string;
   verification?: string;
   used: boolean;
@@ -14,33 +13,12 @@ export interface IForgotPassword extends Document {
   updatedAt: Date;
 }
 
-export interface IUserAccess extends Document {
+export interface IUserAccess {
+  id: number;
   email: string;
   ip: string;
   browser: string;
   country: string;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface IUserDocument extends Document {
-  _id: string;
-  id: string;
-  first_name: string;
-  last_name?: string;
-  email: string;
-  password: string;
-  role: 'user' | 'admin' | 'SUPERADMIN';
-  verification?: string;
-  verified: boolean;
-  phone?: string;
-  city?: string;
-  country?: string;
-  urlTwitter?: string;
-  urlGitHub?: string;
-  loginAttempts: number;
-  blockExpires: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  comparePassword(passwordAttempt: string): Promise<boolean>;
 }

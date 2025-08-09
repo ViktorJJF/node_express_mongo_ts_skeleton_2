@@ -8,7 +8,7 @@ The application follows a clean layered architecture with clear separation of co
 1. **Route Layer**: HTTP routing and middleware
 2. **Controller Layer**: Request/response handling
 3. **Service Layer**: Business logic and data processing
-4. **Model Layer**: Database schema and data access
+4. **Database Layer**: Drizzle schemas + database helpers
 5. **Helper Layer**: Utility functions and common operations
 
 ## Key Design Patterns
@@ -43,9 +43,9 @@ The application follows a clean layered architecture with clear separation of co
 **Purpose**: Abstract database operations
 
 **Implementation**:
-- `db.ts`: Centralized database helper functions
+- `db.ts`: Centralized database helper functions calling Drizzle
 - Consistent error handling and response formatting
-- Pagination and filtering support
+- Pagination, filtering, and CRUD
 
 **Benefits**:
 - Consistent database access patterns
@@ -54,31 +54,25 @@ The application follows a clean layered architecture with clear separation of co
 
 ## Database Patterns
 
-### 1. Mongoose Schema Design
+### 1. Drizzle Schema Design
 ```typescript
-// Standard schema structure
-const Schema = new mongoose.Schema({
-  // Fields with validation
-  field: {
-    type: String,
-    required: true,
-    validate: { validator: function, message: 'Error message' }
-  }
-}, {
-  timestamps: true,  // Automatic createdAt/updatedAt
-  versionKey: false  // Disable __v field
+import { pgTable, serial, varchar, boolean, timestamp, text } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+
+export const bots = pgTable('bots', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').default(sql`now()`).notNull(),
+  updatedAt: timestamp('updated_at').default(sql`now()`).notNull(),
 });
 ```
 
-### 2. Pagination Pattern
+### 2. Pagination Pattern (db.ts)
 ```typescript
-// Standard pagination implementation
-const options = {
-  page: parseInt(req.query.page) || 1,
-  limit: parseInt(req.query.limit) || 10,
-  sort: { createdAt: -1 }
-};
-const result = await model.paginate(query, options);
+const result = await listItemsPaginated<typeof bots, IBot>(req, bots);
+// Supports: page, limit, sort, order, filter + fields
 ```
 
 ### 3. Error Handling Pattern

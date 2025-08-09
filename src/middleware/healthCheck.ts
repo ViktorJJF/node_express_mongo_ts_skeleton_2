@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import mongoose from 'mongoose';
+import getDatabase from '../config/database';
+import { sql } from 'drizzle-orm';
 import logger from '../config/logger';
 
 interface HealthMetrics {
@@ -56,16 +57,21 @@ class HealthCheckMiddleware {
   /**
    * Check if application is healthy based on database connection
    */
-  static isHealthy(): boolean {
-    return mongoose.connection.readyState === 1;
+  static async isHealthy(): Promise<boolean> {
+    try {
+      const db = getDatabase();
+      await db.execute(sql`SELECT 1`);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
    * Get basic health status
    */
-  static getHealthStatus() {
-    const isDbConnected = mongoose.connection.readyState === 1;
-
+  static async getHealthStatus() {
+    const isDbConnected = await HealthCheckMiddleware.isHealthy();
     return {
       isHealthy: isDbConnected,
       database: isDbConnected ? 'connected' : 'disconnected',

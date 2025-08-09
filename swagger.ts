@@ -125,17 +125,24 @@ async function discoverEndpointFiles(routesDir: string): Promise<string[]> {
           .filter((file) => file.endsWith('.ts') || file.endsWith('.js'))
           .filter(
             (file) =>
-              file !== 'index.ts' && file !== 'index.js' && !file.startsWith('.'),
+              file !== 'index.ts' &&
+              file !== 'index.js' &&
+              !file.startsWith('.'),
           )
           .map((file) => path.join(versionDir, file));
 
         routeFiles.push(...versionRouteFiles);
-        console.log(`Discovered ${versionRouteFiles.length} endpoint files from ${version}:`, versionRouteFiles);
+        console.log(
+          `Discovered ${versionRouteFiles.length} endpoint files from ${version}:`,
+          versionRouteFiles,
+        );
       }
     }
 
     if (routeFiles.length === 0) {
-      console.warn(`No route files found in ${routesDir} or its version subdirectories`);
+      console.warn(
+        `No route files found in ${routesDir} or its version subdirectories`,
+      );
     }
 
     console.log(`Total discovered endpoint files: ${routeFiles.length}`);
@@ -215,9 +222,9 @@ async function generateSwagger(config: SwaggerConfig): Promise<void> {
 
 // Default configuration
 const defaultConfig: SwaggerConfig = {
-  title: 'Node Express MongoDB JWT REST API Skeleton',
+  title: 'Node Express PostgreSQL (Drizzle) REST API Skeleton',
   description:
-    'A comprehensive REST API skeleton with authentication, authorization, and MongoDB integration. Supports API versioning with v1 (stable) and v2 (future) endpoints.',
+    'A comprehensive REST API skeleton with authentication, authorization, and PostgreSQL (Drizzle ORM) integration. Supports API versioning with v1 (stable) and v2 (future) endpoints.',
   version: '9.0.5',
   contact: {
     name: 'API Support',

@@ -4,7 +4,7 @@
 
 ### Core Infrastructure
 - **Express.js Server**: Fully configured with TypeScript
-- **MongoDB Connection**: Mongoose ODM with proper error handling
+- **PostgreSQL Connection**: Drizzle ORM with `pg` and connection pooling
 - **TypeScript Compilation**: Full type safety throughout the application
 - **Development Environment**: Hot reload with ts-node-dev
 - **Testing Setup**: Jest for unit tests, Mocha for e2e tests
@@ -18,10 +18,10 @@
 - **Account Security**: Login attempt tracking and account blocking
 
 ### Database Operations
-- **CRUD Operations**: Full Create, Read, Update, Delete functionality
-- **Pagination**: Built-in pagination with mongoose-paginate-v2
-- **Search & Filtering**: Query string parsing and filtering
-- **Data Validation**: Mongoose schema validation
+- **CRUD Operations**: Full Create, Read, Update, Delete functionality via `src/helpers/db.ts`
+- **Pagination**: Built-in pagination leveraging Drizzle and query params
+- **Search & Filtering**: Query string parsing to Drizzle conditions
+- **Schema**: Drizzle schema-first approach in `src/schemas/database/*`
 - **Error Handling**: Consistent error responses
 
 ### API Endpoints
@@ -79,7 +79,7 @@
 - **Testability**: Improved through service layer separation
 
 ### Architecture Status
-- **Database Layer**: ✅ Modernized with async/await
+- **Database Layer**: ✅ Drizzle ORM, schemas + helpers; models removed
 - **Service Layer**: ✅ Implemented for authentication
 - **Controller Layer**: ✅ Cleaned up and simplified
 - **Route Layer**: ✅ Standardized with BaseRouter

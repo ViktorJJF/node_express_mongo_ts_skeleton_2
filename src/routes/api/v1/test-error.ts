@@ -24,7 +24,7 @@ router.post('/validation', async (req, res) => {
 
 router.post('/database', async (req, res) => {
   const error = new Error('Connection timeout');
-  error.name = 'MongoError';
+  error.name = 'DatabaseError';
   (error as any).dbName = 'testdb';
   (error as any).collection = 'users';
 

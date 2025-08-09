@@ -83,7 +83,10 @@ export class ErrorReportingService {
       category = 'validation';
       severity = 'low';
       title = '📝 Validation Error';
-    } else if (error.name === 'MongoError' || error.name === 'MongooseError') {
+    } else if (
+      error.name === 'DatabaseError' ||
+      error.name === 'QueryFailedError'
+    ) {
       category = 'database';
       severity = 'high';
       title = '🗄️ Database Error';

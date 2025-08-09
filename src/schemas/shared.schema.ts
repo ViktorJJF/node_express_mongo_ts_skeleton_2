@@ -1,5 +1,4 @@
 import { z } from '../lib/zod';
-import mongoose from 'mongoose';
 
 export const paginatedResponseSchema = <T extends z.ZodTypeAny>(
   itemSchema: T,
@@ -35,11 +34,7 @@ export const validationErrorSchema = z.object({
   ),
 });
 
-export const idSchema = z.string().refine(
-  (val) => {
-    return mongoose.Types.ObjectId.isValid(val);
-  },
-  {
-    message: 'Invalid ObjectId format',
-  },
-);
+// Numeric ID schema (PostgreSQL serial)
+export const idSchema = z
+  .string()
+  .regex(/^\d+$/, { message: 'ID must be a positive integer string' });

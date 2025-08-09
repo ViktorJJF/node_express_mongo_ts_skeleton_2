@@ -6,8 +6,8 @@
 - **Node.js**: Runtime environment for server-side JavaScript
 - **Express.js**: Web application framework for Node.js
 - **TypeScript**: Typed superset of JavaScript for better development experience
-- **MongoDB**: NoSQL database for data persistence
-- **Mongoose**: MongoDB object modeling tool for Node.js
+- **PostgreSQL**: Relational database
+- **Drizzle ORM**: Type-safe SQL builder and migration tooling
 
 ### Authentication & Security
 - **JWT (jsonwebtoken)**: Token-based authentication
@@ -26,8 +26,9 @@
 - **NYC**: Code coverage reporting
 
 ### Database & Caching
-- **mongoose-paginate-v2**: Pagination plugin for Mongoose
-- **Redis**: Caching layer (via expeditious-engine-redis)
+- **Drizzle ORM**: Schema-first approach with `pg` driver
+- **Drizzle Kit**: Migrations: `db:generate`, `db:migrate`, `db:push`
+- **Redis**: Optional caching layer (via expeditious-engine-redis)
 - **express-expeditious**: Request caching middleware
 
 ### Email & Communication
@@ -64,21 +65,18 @@ FRONTEND_URL=http://localhost:3000
 - **Lock file**: pnpm-lock.yaml for reproducible builds
 
 ### Scripts
-- `npm run dev`: Development server with hot reload
-- `npm run start`: Production server
-- `npm run test`: Run all tests
-- `npm run test:unit`: Run unit tests with Jest
-- `npm run test:e2e`: Run end-to-end tests with Mocha
-- `npm run tsc`: TypeScript compilation
-- `npm run lint`: ESLint code linting
-- `npm run prettier`: Prettier code formatting
+- `pnpm dev`: Development server with hot reload
+- `pnpm start`: Production server
+- `pnpm test`, `pnpm test:unit`, `pnpm test:e2e`
+- `pnpm tsc`, `pnpm lint`, `pnpm prettier`
+- `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:push`, `pnpm db:drop`, `pnpm db:studio`
 
 ## Architecture Patterns
 
 ### Database Layer
-- **Models**: Mongoose schemas with TypeScript interfaces
-- **Helpers**: Database utility functions (db.ts)
-- **Pagination**: Built-in pagination support via mongoose-paginate-v2
+- **Schemas**: Drizzle `pgTable` definitions in `src/schemas/database/*`
+- **Helpers**: Database utility functions in `src/helpers/db.ts` (pagination, filtering, CRUD)
+- **IDs**: Auto-incrementing integers (`serial`) by default
 
 ### Service Layer
 - **Business Logic**: Separated from controllers into service classes
@@ -86,9 +84,8 @@ FRONTEND_URL=http://localhost:3000
 - **Email Service**: Manages email sending operations
 
 ### Controller Layer
-- **Base Controller**: Provides common CRUD operations
-- **Specialized Controllers**: Extend base controller for custom logic
-- **HTTP Concerns**: Focused on request/response handling
+- Controllers call `db.ts` helpers with Drizzle tables
+- HTTP concerns only; business logic lives in services when needed (e.g., `auth.service.ts`)
 
 ### Route Layer
 - **Base Router**: Automatic CRUD route generation

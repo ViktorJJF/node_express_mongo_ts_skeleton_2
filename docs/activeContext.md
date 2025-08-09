@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Work Focus
-**Documentation and Type Safety** - The current focus is on improving documentation and ensuring type safety across the application. This includes adding JSDoc comments to all public APIs and creating TypeScript interfaces for all data structures.
+**Database Migration to PostgreSQL + Drizzle** - The app now uses PostgreSQL with Drizzle ORM. We removed Mongoose models and consolidated data access via Drizzle schemas and `src/helpers/db.ts`. Documentation updated accordingly.
 
 ## Recent Major Changes
 
@@ -25,16 +25,11 @@
 - `updateItem()`: Streamlined with async/await
 - `deleteItem()`: Used `findByIdAndDelete()` for atomic operation
 
-### 3. Model Layer Updates (`src/models/Users.ts`)
-**Completed**: Modernized Mongoose model methods
-- **Before**: Callback-based `pre('save')` hook and `comparePassword` method
-- **After**: Async/await implementation
-- **Impact**: Consistent async patterns throughout
-
-**Key Changes**:
-- Password hashing hook now uses async/await
-- `comparePassword` method returns Promise<boolean>
-- Removed callback-based bcrypt operations
+### 3. Database Layer Changes
+**Completed**: Removed model classes and migrated to Drizzle schemas
+- Added schemas under `src/schemas/database/*`
+- Centralized CRUD + pagination in `src/helpers/db.ts`
+- IDs are auto-increment integers (serial)
 
 ### 4. Controller Layer Refactoring
 **Completed**: Separated concerns and eliminated boilerplate
@@ -84,7 +79,7 @@
 
 ### Clean Separation of Concerns
 ```
-Controllers (HTTP) → Services (Business Logic) → Models (Data)
+Routes → Controllers (HTTP) → Services (Auth/Business) → DB Helpers + Drizzle Schemas
 ```
 
 ### Modern Async Patterns
