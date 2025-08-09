@@ -84,8 +84,8 @@ class Controller {
       const { id } = req.params;
       const doesItemExist = await itemExistsExcludingItself(
         id,
-        model,
         req.body,
+        model,
         UNIQUE_FIELDS,
       );
       if (!doesItemExist) {
@@ -161,8 +161,8 @@ class Controller {
         if (update.data.name) {
           await itemExistsExcludingItself(
             update.id,
-            model,
             update.data,
+            model,
             UNIQUE_FIELDS,
           );
         }
