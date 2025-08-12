@@ -30,6 +30,7 @@ export const users = pgTable('users', {
   url_github: text('url_github'),
   login_attempts: integer('login_attempts').default(0).notNull(),
   block_expires: timestamp('block_expires').default(sql`now()`),
+  status: boolean('status').default(true).notNull(),
   created_at: timestamp('created_at')
     .default(sql`now()`)
     .notNull(),

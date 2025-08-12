@@ -24,7 +24,7 @@ export const generateToken = (userId: number): string => {
     jwt.sign(
       {
         data: {
-          _id: userId,
+          id: userId,
         },
         exp: expiration,
       },
@@ -244,7 +244,7 @@ export const saveUserAccessAndReturnToken = async (req: any, user: any) => {
 
 export const setUserInfo = (user: any) => {
   let userInfo: any = {
-    _id: user.id,
+    id: user.id,
     id: user.id, // Add both for compatibility
     firstname: user.firstname,
     lastname: user.lastname,

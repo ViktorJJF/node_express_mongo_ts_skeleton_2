@@ -84,7 +84,7 @@ export const getUserIdFromToken = async (token: string): Promise<string> => {
       decoded = jwt.verify(token, secret) as any;
     }
 
-    const id = decoded?.id ?? decoded?.data?._id;
+    const id = decoded?.id ?? decoded?.data?.id;
     if (!id) {
       throw buildErrObject(401, 'INVALID_TOKEN');
     }

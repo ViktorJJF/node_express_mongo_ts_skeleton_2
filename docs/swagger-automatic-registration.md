@@ -53,7 +53,7 @@ Create a new file in `src/schemas/` with the `.schema.ts` extension:
 import { z } from '../lib/zod';
 
 export const productSchema = z.object({
-  _id: z.string(),
+  id: z.string(),
   name: z.string(),
   price: z.number(),
   description: z.string().optional(),
@@ -62,7 +62,7 @@ export const productSchema = z.object({
 });
 
 export const createProductSchema = productSchema.omit({
-  _id: true,
+  id: true,
   created_at: true,
   updated_at: true,
 });

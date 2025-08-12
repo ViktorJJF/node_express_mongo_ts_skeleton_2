@@ -132,8 +132,8 @@ describe('*********** USERS ***********', () => {
         .end((err, res) => {
           res.should.have.status(201);
           res.body.should.be.a('object');
-          res.body.should.include.keys('_id', 'name', 'email', 'verification');
-          createdID.push(res.body._id);
+          res.body.should.include.keys('id', 'name', 'email', 'verification');
+          createdID.push(res.body.id);
           done();
         });
     });
@@ -187,7 +187,7 @@ describe('*********** USERS ***********', () => {
           res.should.have.status(200);
           res.body.should.be.a('object');
           res.body.should.have.property('name');
-          res.body.should.have.property('_id').eql(id);
+          res.body.should.have.property('id').eql(id);
           done();
         });
     });
@@ -213,12 +213,12 @@ describe('*********** USERS ***********', () => {
         .end((error, res) => {
           res.should.have.status(200);
           res.body.should.be.a('object');
-          res.body.should.have.property('_id').eql(id);
+          res.body.should.have.property('id').eql(id);
           res.body.should.have.property('name').eql('JS123456');
           res.body.should.have
             .property('email')
             .eql('emailthatalreadyexists@email.com');
-          createdID.push(res.body._id);
+          createdID.push(res.body.id);
           done();
         });
     });
@@ -282,10 +282,10 @@ describe('*********** USERS ***********', () => {
         .end((err, res) => {
           res.should.have.status(201);
           res.body.should.be.a('object');
-          res.body.should.include.keys('_id', 'name', 'email', 'verification');
+          res.body.should.include.keys('id', 'name', 'email', 'verification');
           chai
             .request(server)
-            .delete(`/users/${res.body._id}`)
+            .delete(`/users/${res.body.id}`)
             .set('Authorization', `Bearer ${tokens.admin}`)
             .end((error, result) => {
               result.should.have.status(200);

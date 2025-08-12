@@ -39,7 +39,7 @@ const jwtOptions = {
  */
 const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
   try {
-    const user = await db.getItem(payload.data._id, users);
+    const user = await db.getItem(payload.data.id, users);
     return !user ? done(null, false) : done(null, user);
   } catch (err) {
     return done(err, false);

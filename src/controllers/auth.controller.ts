@@ -168,7 +168,7 @@ export const getRefreshToken = async (
 export const roleAuthorization =
   (roles: string[]) => async (req: any, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user?.id ?? req.user?._id;
+      const userId = req.user?.id ?? req.user?.id;
       const data = { id: userId, roles } as { id: number; roles: string[] };
       await AuthService.checkPermissions(data, next);
     } catch (error) {

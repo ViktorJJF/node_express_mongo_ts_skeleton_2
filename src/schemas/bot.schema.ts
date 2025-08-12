@@ -2,7 +2,7 @@ import { z } from '../lib/zod';
 import { paginatedResponseSchema } from './shared.schema';
 
 export const botSchema = z.object({
-  _id: z.string().openapi({ example: '60d0fe4f5311236168a109cb' }),
+  id: z.number().int().positive().openapi({ example: 1 }),
   name: z.string().openapi({ example: 'My Awesome Bot' }),
   description: z
     .string()
@@ -15,7 +15,7 @@ export const botSchema = z.object({
 
 export const createBotSchema = botSchema
   .omit({
-    _id: true,
+    id: true,
     created_at: true,
     updated_at: true,
   })
@@ -45,7 +45,7 @@ export const bulkUpdateBotsSchema = z.object({
   updates: z
     .array(
       z.object({
-        id: z.string().openapi({ example: '60d0fe4f5311236168a109cb' }),
+        id: z.string().openapi({ example: '1' }),
         data: updateBotSchema,
       }),
     )
@@ -53,8 +53,8 @@ export const bulkUpdateBotsSchema = z.object({
     .max(100)
     .openapi({
       example: [
-        { id: '60d0fe4f5311236168a109cb', data: { name: 'Updated Bot 1' } },
-        { id: '60d0fe4f5311236168a109cc', data: { status: false } },
+        { id: '1', data: { name: 'Updated Bot 1' } },
+        { id: '2', data: { status: false } },
       ],
     }),
 });
@@ -65,7 +65,7 @@ export const bulkDeleteBotsSchema = z.object({
     .min(1)
     .max(100)
     .openapi({
-      example: ['60d0fe4f5311236168a109cb', '60d0fe4f5311236168a109cc'],
+      example: ['1', '2'],
     }),
 });
 
