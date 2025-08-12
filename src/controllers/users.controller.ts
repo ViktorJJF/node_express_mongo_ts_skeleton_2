@@ -10,6 +10,7 @@ import {
 import { IUser } from '../types/entities/users';
 import { SuccessResponse, PaginatedResponse } from '../types/shared/response';
 import { ListQuery } from '../types/shared/query';
+import { filterTimestampFields } from '../helpers/utils';
 
 class Controller {
   public list = async (
@@ -48,7 +49,9 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const item = await createItem<typeof users, IUser>(req.body, users);
+      // Filter out timestamp fields to prevent frontend from overriding them
+      const filteredBody = filterTimestampFields(req.body);
+      const item = await createItem<typeof users, IUser>(filteredBody, users);
       res.status(201).json({ ok: true, payload: item });
     } catch (error) {
       next(error);
@@ -62,7 +65,13 @@ class Controller {
   ): Promise<void> => {
     try {
       const id = parseInt(req.params.id, 10);
-      const item = await updateItem<typeof users, IUser>(id, users, req.body);
+      // Filter out timestamp fields to prevent frontend from overriding them
+      const filteredBody = filterTimestampFields(req.body);
+      const item = await updateItem<typeof users, IUser>(
+        id,
+        users,
+        filteredBody,
+      );
       res.status(200).json({ ok: true, payload: item });
     } catch (error) {
       next(error);

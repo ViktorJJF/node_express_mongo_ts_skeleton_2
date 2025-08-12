@@ -57,14 +57,14 @@ export const productSchema = z.object({
   name: z.string(),
   price: z.number(),
   description: z.string().optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  created_at: z.date(),
+  updated_at: z.date(),
 });
 
 export const createProductSchema = productSchema.omit({
   _id: true,
-  createdAt: true,
-  updatedAt: true,
+  created_at: true,
+  updated_at: true,
 });
 
 export const updateProductSchema = createProductSchema.partial();

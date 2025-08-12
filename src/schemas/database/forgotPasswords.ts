@@ -19,10 +19,10 @@ export const forgotPasswords = pgTable('forgot_passwords', {
   ipChanged: text('ip_changed'),
   browserChanged: text('browser_changed'),
   countryChanged: text('country_changed'),
-  createdAt: timestamp('created_at')
+  created_at: timestamp('created_at')
     .default(sql`now()`)
     .notNull(),
-  updatedAt: timestamp('updated_at')
+  updated_at: timestamp('updated_at')
     .default(sql`now()`)
     .notNull(),
 });

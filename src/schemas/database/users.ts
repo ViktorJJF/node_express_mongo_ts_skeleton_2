@@ -30,10 +30,10 @@ export const users = pgTable('users', {
   urlGitHub: text('url_github'),
   loginAttempts: integer('login_attempts').default(0).notNull(),
   blockExpires: timestamp('block_expires').default(sql`now()`),
-  createdAt: timestamp('created_at')
+  created_at: timestamp('created_at')
     .default(sql`now()`)
     .notNull(),
-  updatedAt: timestamp('updated_at')
+  updated_at: timestamp('updated_at')
     .default(sql`now()`)
     .notNull(),
 });

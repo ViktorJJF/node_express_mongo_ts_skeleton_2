@@ -34,7 +34,7 @@ export interface IBulkCreateBotsRequest {
   bots: Array<{
     name: string;
     description?: string;
-    isActive?: boolean;
+    is_active?: boolean;
   }>;
 }
 
@@ -49,7 +49,7 @@ export interface IBulkUpdateBotsRequest {
     data: {
       name?: string;
       description?: string;
-      isActive?: boolean;
+      is_active?: boolean;
     };
   }>;
 }

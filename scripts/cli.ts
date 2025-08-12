@@ -81,9 +81,9 @@ export const ${plural} = pgTable('${plural}', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
-  isActive: boolean('is_active').default(true).notNull(),
-  createdAt: timestamp('created_at').default(sql`now()`).notNull(),
-  updatedAt: timestamp('updated_at').default(sql`now()`).notNull(),
+  is_active: boolean('is_active').default(true).notNull(),
+  created_at: timestamp('created_at').default(sql`now()`).notNull(),
+  updated_at: timestamp('updated_at').default(sql`now()`).notNull(),
 });
 
 export type ${capitalizedSingular} = typeof ${plural}.$inferSelect;
@@ -101,21 +101,21 @@ export const ${singular}Schema = z.object({
   id: z.number().int().positive(),
   name: z.string().min(1),
   description: z.string().optional(),
-  isActive: z.boolean().optional(),
-  createdAt: z.any().optional(),
-  updatedAt: z.any().optional(),
+  is_active: z.boolean().optional(),
+  created_at: z.any().optional(),
+  updated_at: z.any().optional(),
 });
 
 export const create${capitalizedSingular}Schema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
-  isActive: z.boolean().optional(),
+  is_active: z.boolean().optional(),
 });
 
 export const update${capitalizedSingular}Schema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().optional(),
-  isActive: z.boolean().optional(),
+  is_active: z.boolean().optional(),
 });
 
 export const bulkCreate${capitalizedPlural}Schema = z.object({

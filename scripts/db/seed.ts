@@ -58,7 +58,7 @@ async function seed() {
       await db.insert(schema.bots).values({
         name: DEFAULT_BOT_NAME,
         description: 'Initial seed bot',
-        isActive: true,
+        is_active: true,
       });
       console.log(`✅ Bot created: ${DEFAULT_BOT_NAME}`);
     } else {
@@ -79,5 +79,3 @@ if (require.main === module) {
 }
 
 export default seed;
-
-

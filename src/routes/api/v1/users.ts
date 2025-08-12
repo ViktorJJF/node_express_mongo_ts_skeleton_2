@@ -4,7 +4,10 @@ import passport from 'passport';
 import trimRequest from 'trim-request';
 import controller from '../../../controllers/users.controller';
 import { roleAuthorization } from '../../../controllers/auth.controller';
-import { createUserSchema, updateUserSchema } from '../../../schemas/user.schema';
+import {
+  createUserSchema,
+  updateUserSchema,
+} from '../../../schemas/user.schema';
 import { validate } from '../../../middleware/validator';
 import { z } from 'zod';
 
@@ -20,7 +23,7 @@ router.get(
   // #swagger.tags = ['Users']
   // #swagger.summary = 'Get users (admin only)'
   // #swagger.security = [{ "BearerAuth": [] }]
-  // #swagger.parameters['sort'] = { in: 'query', description: 'Sort by field', required: false, type: 'string', schema: { '@enum': ['createdAt', 'updatedAt'] } }
+  // #swagger.parameters['sort'] = { in: 'query', description: 'Sort by field', required: false, type: 'string', schema: { '@enum': ['created_at', 'updated_at'] } }
   // #swagger.parameters['order'] = { in: 'query', description: 'Sort order', required: false, type: 'string', schema: { '@enum': ['asc', 'desc'] } }
   // #swagger.parameters['page'] = { in: 'query', description: 'Page number', required: false, type: 'number' }
   // #swagger.parameters['limit'] = { in: 'query', description: 'Number of items per page', required: false, type: 'number' }

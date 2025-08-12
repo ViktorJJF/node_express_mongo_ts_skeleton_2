@@ -31,7 +31,7 @@ router.get(
   '/bots',
   // #swagger.tags = ['Bots']
   // #swagger.summary = 'Get all bots with pagination v3'
-  // #swagger.parameters['sort'] = { in: 'query', description: 'Sort by field', schema: { type: 'string', enum: ['createdAt', 'updatedAt'] } }
+  // #swagger.parameters['sort'] = { in: 'query', description: 'Sort by field', schema: { type: 'string', enum: ['created_at', 'updated_at'] } }
   // #swagger.parameters['order'] = { in: 'query', description: 'Sort order', schema: { type: 'string', enum: ['asc', 'desc'] } }
   // #swagger.parameters['page'] = { in: 'query', description: 'Page number', schema: { type: 'number' } }
   // #swagger.parameters['limit'] = { in: 'query', description: 'Number of items per page', schema: { type: 'number' } }

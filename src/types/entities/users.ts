@@ -14,6 +14,6 @@ export interface IUser {
   urlGitHub?: string;
   loginAttempts: number;
   blockExpires: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }

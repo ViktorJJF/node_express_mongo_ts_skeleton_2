@@ -238,8 +238,8 @@ export const chats = pgTable('chats', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 255 }).notNull(),
   isArchived: boolean('is_archived').default(false).notNull(),
-  createdAt: timestamp('created_at').default(sql`now()`).notNull(),
-  updatedAt: timestamp('updated_at').default(sql`now()`).notNull(),
+  created_at: timestamp('created_at').default(sql`now()`).notNull(),
+  updated_at: timestamp('updated_at').default(sql`now()`).notNull(),
 });
 
 export type Chat = typeof chats.$inferSelect;    // Read

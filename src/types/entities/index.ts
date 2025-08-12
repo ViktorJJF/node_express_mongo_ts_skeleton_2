@@ -9,8 +9,8 @@ export interface IForgotPassword {
   ipChanged?: string;
   browserChanged?: string;
   countryChanged?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface IUserAccess {
@@ -19,6 +19,6 @@ export interface IUserAccess {
   ip: string;
   browser: string;
   country: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }

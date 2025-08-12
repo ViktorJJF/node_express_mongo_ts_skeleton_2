@@ -7,10 +7,10 @@ export const userAccess = pgTable('user_access', {
   ip: text('ip').notNull(),
   browser: text('browser').notNull(),
   country: text('country').notNull(),
-  createdAt: timestamp('created_at')
+  created_at: timestamp('created_at')
     .default(sql`now()`)
     .notNull(),
-  updatedAt: timestamp('updated_at')
+  updated_at: timestamp('updated_at')
     .default(sql`now()`)
     .notNull(),
 });

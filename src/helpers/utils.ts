@@ -134,6 +134,23 @@ const listResponse = (data: any): object => {
   };
 };
 
+/**
+ * Filters out timestamp fields (created_at, updated_at) from request body
+ * to prevent frontend from overriding database-managed timestamps
+ * @param body - Request body object
+ * @returns Filtered body without timestamp fields
+ */
+const filterTimestampFields = (
+  body: Record<string, any>,
+): Record<string, any> => {
+  const {
+    created_at: _created_at,
+    updated_at: _updated_at,
+    ...filteredBody
+  } = body;
+  return filteredBody;
+};
+
 export {
   convertToDate,
   selectRandomId,
@@ -148,4 +165,5 @@ export {
   buildSuccObject,
   isIDGood,
   listResponse,
+  filterTimestampFields,
 };

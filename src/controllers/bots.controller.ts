@@ -28,6 +28,7 @@ import {
 } from '../types/entities/bots';
 import { ListQuery } from '../types/shared/query';
 import { itemExists, itemExistsExcludingItself } from '../helpers/db';
+import { filterTimestampFields } from '../helpers/utils';
 
 const UNIQUE_FIELDS = ['name'];
 
@@ -68,7 +69,8 @@ class Controller {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const bot = req.body;
+      // Filter out timestamp fields to prevent frontend from overriding them
+      const bot = filterTimestampFields(req.body);
       const doesItemExist = await itemExists(bot, bots, UNIQUE_FIELDS);
       if (!doesItemExist) {
         const item = await createItem<typeof bots, IBot>(bot, bots);
@@ -86,9 +88,11 @@ class Controller {
   ): Promise<void> => {
     try {
       const { id } = req.params;
+      // Filter out timestamp fields to prevent frontend from overriding them
+      const filteredBody = filterTimestampFields(req.body);
       const doesItemExist = await itemExistsExcludingItself(
         parseInt(id, 10),
-        req.body,
+        filteredBody,
         bots,
         UNIQUE_FIELDS,
       );
@@ -96,7 +100,7 @@ class Controller {
         const item = await updateItem<typeof bots, IBot>(
           parseInt(id, 10),
           bots,
-          req.body,
+          filteredBody,
         );
         res.status(200).json({ ok: true, payload: item });
       }
@@ -127,8 +131,11 @@ class Controller {
     try {
       const { bots: items } = req.body;
 
+      // Filter out timestamp fields from each item to prevent frontend from overriding them
+      const filteredItems = items.map((item) => filterTimestampFields(item));
+
       // Check for duplicate names within the request
-      const names = items.map((item) => item.name);
+      const names = filteredItems.map((item) => item.name);
       const duplicateNames = names.filter(
         (name, index) => names.indexOf(name) !== index,
       );
@@ -139,12 +146,12 @@ class Controller {
       }
 
       // Check if any bots with these names already exist
-      for (const item of items) {
+      for (const item of filteredItems) {
         await itemExists(item, bots, UNIQUE_FIELDS);
       }
 
       const createdItems = await createItems<typeof bots, IBot>(
-        items,
+        filteredItems,
         bots,
       );
       res.status(200).json({
@@ -167,8 +174,14 @@ class Controller {
     try {
       const { updates } = req.body;
 
+      // Filter out timestamp fields from each update to prevent frontend from overriding them
+      const filteredUpdates = updates.map((update) => ({
+        ...update,
+        data: filterTimestampFields(update.data),
+      }));
+
       // Validate each update for uniqueness constraints
-      for (const update of updates) {
+      for (const update of filteredUpdates) {
         if (update.data.name) {
           await itemExistsExcludingItself(
             parseInt(update.id, 10),
@@ -179,7 +192,7 @@ class Controller {
         }
       }
 
-      const updatesData = updates.map((update) => ({
+      const updatesData = filteredUpdates.map((update) => ({
         id: parseInt(update.id, 10),
         data: update.data,
       }));

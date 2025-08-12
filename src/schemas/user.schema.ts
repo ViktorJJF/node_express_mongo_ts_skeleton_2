@@ -15,21 +15,21 @@ export const userSchema = z.object({
   lastName: z.string().openapi({ example: 'Doe' }),
   role: z.nativeEnum(ROLES).openapi({ example: ROLES.USER }),
   isEmailVerified: z.boolean().openapi({ example: true }),
-  isActive: z.boolean().openapi({ example: true }),
-  createdAt: z.date().openapi({ example: '2023-01-01T12:00:00.000Z' }),
-  updatedAt: z.date().openapi({ example: '2023-01-01T12:00:00.000Z' }),
+  is_active: z.boolean().openapi({ example: true }),
+  created_at: z.date().openapi({ example: '2023-01-01T12:00:00.000Z' }),
+  updated_at: z.date().openapi({ example: '2023-01-01T12:00:00.000Z' }),
 });
 
 export const createUserSchema = userSchema
   .omit({
     _id: true,
-    createdAt: true,
-    updatedAt: true,
+    created_at: true,
+    updated_at: true,
   })
   .extend({
     role: z.nativeEnum(ROLES).optional(),
     isEmailVerified: z.boolean().optional(),
-    isActive: z.boolean().optional(),
+    is_active: z.boolean().optional(),
   });
 
 export const updateUserSchema = createUserSchema.partial();

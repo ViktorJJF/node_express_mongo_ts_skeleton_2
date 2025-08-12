@@ -14,11 +14,11 @@ export const brands = pgTable('brands', {
   description: text('description'),
   logo: text('logo'),
   website: text('website'),
-  isActive: boolean('is_active').default(true).notNull(),
-  createdAt: timestamp('created_at')
+  is_active: boolean('is_active').default(true).notNull(),
+  created_at: timestamp('created_at')
     .default(sql`now()`)
     .notNull(),
-  updatedAt: timestamp('updated_at')
+  updated_at: timestamp('updated_at')
     .default(sql`now()`)
     .notNull(),
 });

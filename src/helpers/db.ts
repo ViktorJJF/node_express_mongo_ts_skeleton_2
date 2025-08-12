@@ -38,7 +38,7 @@ const renameKey = (
 
 const listInitOptions = async (req: Request): Promise<Record<string, any>> => {
   const order = (req.query.order || 'asc') as string;
-  const sort = (req.query.sort || 'createdAt') as string;
+  const sort = (req.query.sort || 'created_at') as string;
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit = parseInt(req.query.limit as string, 10) || 99999;
   return {
@@ -136,14 +136,16 @@ async function getItems<T, R>(
     const offset = (options.page - 1) * options.limit;
 
     // Get total count
-    const totalQuery: any = (db.select({ count: count() }).from(table as any) as any);
+    const totalQuery: any = db
+      .select({ count: count() })
+      .from(table as any) as any;
     if (whereCondition) {
       totalQuery.where(whereCondition);
     }
     const [{ count: totalCount }] = await totalQuery;
 
     // Get paginated results
-    let selectQuery: any = (db.select().from(table as any) as any);
+    let selectQuery: any = db.select().from(table as any) as any;
     if (whereCondition) {
       selectQuery = selectQuery.where(whereCondition);
     }
@@ -237,7 +239,7 @@ async function filterItems<T, R>(
     }
 
     const db = getDatabase();
-    let query: any = (db.select().from(table as any) as any);
+    let query: any = db.select().from(table as any) as any;
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
     }
@@ -276,10 +278,10 @@ async function updateItem<T, R>(
     const db = getDatabase();
     const idColumn = (table as any).id as PgColumn;
 
-    // Add updatedAt timestamp
+    // Add updated_at timestamp
     const updatedBody = {
       ...body,
-      updatedAt: new Date(),
+      updated_at: new Date(),
     };
 
     const result = (await (db
@@ -302,10 +304,7 @@ async function updateItem<T, R>(
   }
 }
 
-async function deleteItem<T, R>(
-  id: number,
-  table: T,
-): Promise<R> {
+async function deleteItem<T, R>(id: number, table: T): Promise<R> {
   try {
     const db = getDatabase();
     const idColumn = (table as any).id as PgColumn;
@@ -338,7 +337,7 @@ async function createItems<T, R>(
       .insert(table as any)
       .values(items as any)
       .returning() as any)) as any[];
-    return (result as unknown) as R[];
+    return result as unknown as R[];
   } catch (error) {
     logger.error('Error creating items:', error);
     throw error;
@@ -359,7 +358,7 @@ async function updateItems<T, R>(
       try {
         const updatedBody = {
           ...update.data,
-          updatedAt: new Date(),
+          updated_at: new Date(),
         };
 
         const result = (await (db
@@ -433,7 +432,7 @@ export const listItemsPaginated = async <T extends PgTable, R>(
   const fields = req.query.fields as string;
   const paginatedResponse = await getItems<T, R>(
     req,
-    (table as unknown) as T,
+    table as unknown as T,
     query,
     fields,
   );
@@ -465,7 +464,7 @@ export const itemExists = async <T extends PgTable>(
 
     const result = await db
       .select()
-      .from((table as unknown) as any)
+      .from(table as unknown as any)
       .where(and(...conditions))
       .limit(1);
 
@@ -511,7 +510,7 @@ export const itemExistsExcludingItself = async <T extends PgTable>(
 
     const result = await db
       .select()
-      .from((table as unknown) as any)
+      .from(table as unknown as any)
       .where(and(...conditions))
       .limit(1);
 
