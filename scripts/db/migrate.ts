@@ -2,12 +2,11 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Pool } from 'pg';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import path from 'path';
 import { getConnectionString } from '../../src/config/database';
 
-// Load environment variables
-dotenv.config();
+// Environment variables loaded via import
 
 async function runMigration() {
   const pool = new Pool({
@@ -37,5 +36,3 @@ if (require.main === module) {
 }
 
 export default runMigration;
-
-
