@@ -27,7 +27,7 @@ export const login = async (
     if (!isPasswordMatch) {
       await AuthService.passwordsDoNotMatch(user);
     } else {
-      user.loginAttempts = 0;
+      user.login_attempts = 0;
       await AuthService.saveLoginAttemptsToDB(user);
       res
         .status(200)

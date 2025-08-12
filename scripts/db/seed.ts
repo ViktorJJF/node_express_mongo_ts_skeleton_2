@@ -36,8 +36,8 @@ async function seed() {
     if (existingUsers.length === 0) {
       const passwordHash = await hashPassword(DEFAULT_USER_PASSWORD);
       await db.insert(schema.users).values({
-        firstName: 'Bola',
-        lastName: 'Inas',
+        firstname: 'Bola',
+        lastname: 'Inas',
         email: DEFAULT_USER_EMAIL,
         password: passwordHash,
         verified: true,
@@ -58,7 +58,7 @@ async function seed() {
       await db.insert(schema.bots).values({
         name: DEFAULT_BOT_NAME,
         description: 'Initial seed bot',
-        is_active: true,
+        status: true,
       });
       console.log(`✅ Bot created: ${DEFAULT_BOT_NAME}`);
     } else {

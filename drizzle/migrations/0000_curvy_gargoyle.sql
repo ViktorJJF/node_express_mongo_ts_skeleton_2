@@ -2,7 +2,7 @@ CREATE TABLE "bots" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"description" text,
-	"is_active" boolean DEFAULT true NOT NULL,
+	"status" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -13,7 +13,7 @@ CREATE TABLE "brands" (
 	"description" text,
 	"logo" text,
 	"website" text,
-	"is_active" boolean DEFAULT true NOT NULL,
+	"status" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );

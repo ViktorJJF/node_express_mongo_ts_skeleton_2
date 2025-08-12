@@ -14,7 +14,7 @@ export const brands = pgTable('brands', {
   description: text('description'),
   logo: text('logo'),
   website: text('website'),
-  is_active: boolean('is_active').default(true).notNull(),
+  status: boolean('status').default(true).notNull(),
   created_at: timestamp('created_at')
     .default(sql`now()`)
     .notNull(),

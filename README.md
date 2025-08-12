@@ -206,7 +206,7 @@ import { users } from '@/schemas/database';
 import { createItem, getItem, updateItem, deleteItem, listItemsPaginated } from '@/helpers/db';
 
 // Create
-const created = await createItem<typeof users, any>({ firstName: 'A' }, users);
+const created = await createItem<typeof users, any>({ firstname: 'A' }, users);
 
 // Read (list with pagination)
 const list = await listItemsPaginated<typeof users, any>(req, users);
@@ -215,7 +215,7 @@ const list = await listItemsPaginated<typeof users, any>(req, users);
 const user = await getItem<typeof users, any>(1, users);
 
 // Update
-const updated = await updateItem<typeof users, any>(1, users, { firstName: 'B' });
+const updated = await updateItem<typeof users, any>(1, users, { firstname: 'B' });
 
 // Delete
 const removed = await deleteItem<typeof users, any>(1, users);

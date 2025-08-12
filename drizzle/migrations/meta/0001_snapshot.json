@@ -26,8 +26,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "is_active": {
-          "name": "is_active",
+        "status": {
+          "name": "status",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -90,8 +90,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "is_active": {
-          "name": "is_active",
+        "status": {
+          "name": "status",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -328,9 +328,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},

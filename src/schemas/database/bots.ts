@@ -12,7 +12,7 @@ export const bots = pgTable('bots', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
-  is_active: boolean('is_active').default(true).notNull(),
+  status: boolean('status').default(true).notNull(),
   created_at: timestamp('created_at')
     .default(sql`now()`)
     .notNull(),

@@ -11,11 +11,11 @@ export const userSchema = z.object({
   _id: z.string().openapi({ example: '60d0fe4f5311236168a109ca' }),
   email: z.string().email().openapi({ example: 'john.doe@example.com' }),
   password: z.string().openapi({ example: 'aVeryComplexPassword123!' }),
-  firstName: z.string().openapi({ example: 'John' }),
-  lastName: z.string().openapi({ example: 'Doe' }),
+  firstname: z.string().openapi({ example: 'John' }),
+  lastname: z.string().openapi({ example: 'Doe' }),
   role: z.nativeEnum(ROLES).openapi({ example: ROLES.USER }),
   isEmailVerified: z.boolean().openapi({ example: true }),
-  is_active: z.boolean().openapi({ example: true }),
+  status: z.boolean().openapi({ example: true }),
   created_at: z.date().openapi({ example: '2023-01-01T12:00:00.000Z' }),
   updated_at: z.date().openapi({ example: '2023-01-01T12:00:00.000Z' }),
 });
@@ -29,7 +29,7 @@ export const createUserSchema = userSchema
   .extend({
     role: z.nativeEnum(ROLES).optional(),
     isEmailVerified: z.boolean().optional(),
-    is_active: z.boolean().optional(),
+    status: z.boolean().optional(),
   });
 
 export const updateUserSchema = createUserSchema.partial();

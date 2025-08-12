@@ -35,33 +35,33 @@ export const generateToken = (userId: number): string => {
 
 export const blockUser = async (user: any) => {
   await db.updateItem(user.id, users, {
-    blockExpires: addHours(new Date(), HOURS_TO_BLOCK),
-    loginAttempts: user.loginAttempts,
+    block_expires: addHours(new Date(), HOURS_TO_BLOCK),
+    login_attempts: user.login_attempts,
   });
   throw buildErrObject(409, 'BLOCKED_USER');
 };
 
 export const saveLoginAttemptsToDB = async (user: any) => {
   await db.updateItem(user.id, users, {
-    loginAttempts: user.loginAttempts,
+    login_attempts: user.login_attempts,
   });
 };
 
 const blockIsExpired = (user: any) =>
-  user.loginAttempts > LOGIN_ATTEMPTS &&
-  user.blockExpires &&
-  user.blockExpires <= new Date();
+  user.login_attempts > LOGIN_ATTEMPTS &&
+  user.block_expires &&
+  user.block_expires <= new Date();
 
 export const checkLoginAttemptsAndBlockExpires = async (user: any) => {
   if (blockIsExpired(user)) {
     await db.updateItem(user.id, users, {
-      loginAttempts: 0,
+      login_attempts: 0,
     });
   }
 };
 
 export const userIsBlocked = (user: any) => {
-  if (user.blockExpires && user.blockExpires > new Date()) {
+  if (user.block_expires && user.block_expires > new Date()) {
     throw buildErrObject(409, 'BLOCKED_USER');
   }
 };
@@ -89,15 +89,15 @@ export const findUserById = async (userId: number): Promise<any> => {
 };
 
 export const passwordsDoNotMatch = async (user: any) => {
-  const newLoginAttempts = (user.loginAttempts || 0) + 1;
+  const newLoginAttempts = (user.login_attempts || 0) + 1;
   await db.updateItem(user.id, users, {
-    loginAttempts: newLoginAttempts,
+    login_attempts: newLoginAttempts,
   });
 
   if (newLoginAttempts <= LOGIN_ATTEMPTS) {
     throw buildErrObject(409, 'La contraseña es incorrecta');
   } else {
-    const updatedUser = { ...user, loginAttempts: newLoginAttempts };
+    const updatedUser = { ...user, login_attempts: newLoginAttempts };
     await blockUser(updatedUser);
   }
 };
@@ -217,7 +217,7 @@ export const forgotPasswordResponse = (item: any) => {
 
 export const checkPermissions = async (data: any, next: any) => {
   try {
-  const result: any = await db.getItem(data.id, users);
+    const result: any = await db.getItem(data.id, users);
     if (data.roles.indexOf(result.role) > -1) {
       return next();
     }
@@ -246,9 +246,9 @@ export const setUserInfo = (user: any) => {
   let userInfo: any = {
     _id: user.id,
     id: user.id, // Add both for compatibility
-    firstName: user.firstName,
-    lastName: user.lastName,
-    name: `${user.firstName} ${user.lastName || ''}`.trim(),
+    firstname: user.firstname,
+    lastname: user.lastname,
+    name: `${user.firstname} ${user.lastname || ''}`.trim(),
     email: user.email,
     role: user.role,
     verified: user.verified,

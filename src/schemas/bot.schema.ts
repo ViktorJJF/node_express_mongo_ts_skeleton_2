@@ -8,7 +8,7 @@ export const botSchema = z.object({
     .string()
     .optional()
     .openapi({ example: 'This bot is designed to do awesome thingsss.' }),
-  is_active: z.boolean().openapi({ example: true }),
+  status: z.boolean().openapi({ example: true }),
   created_at: z.date().openapi({ example: '2023-01-01T12:00:00.000Z' }),
   updated_at: z.date().openapi({ example: '2023-01-01T12:00:00.000Z' }),
 });
@@ -20,7 +20,7 @@ export const createBotSchema = botSchema
     updated_at: true,
   })
   .extend({
-    is_active: z.boolean().optional().openapi({ example: true }),
+    status: z.boolean().optional().openapi({ example: true }),
   });
 
 export const updateBotSchema = createBotSchema.partial();
@@ -35,8 +35,8 @@ export const bulkCreateBotsSchema = z.object({
     .max(100)
     .openapi({
       example: [
-        { name: 'Bot 1', description: 'First bot', is_active: true },
-        { name: 'Bot 2', description: 'Second bot', is_active: false },
+        { name: 'Bot 1', description: 'First bot', status: true },
+        { name: 'Bot 2', description: 'Second bot', status: false },
       ],
     }),
 });
@@ -54,7 +54,7 @@ export const bulkUpdateBotsSchema = z.object({
     .openapi({
       example: [
         { id: '60d0fe4f5311236168a109cb', data: { name: 'Updated Bot 1' } },
-        { id: '60d0fe4f5311236168a109cc', data: { is_active: false } },
+        { id: '60d0fe4f5311236168a109cc', data: { status: false } },
       ],
     }),
 });
